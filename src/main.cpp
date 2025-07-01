@@ -1,9 +1,8 @@
 
-#include "RenderWindowSDL.hpp"
+#include "RenderEngine.hpp"
 
 int main(int arg, char** argv)
 {
-    RenderWindowSDL window = RenderWindowSDL(800, 600);
-    
+    RenderEngine engine = RenderEngine();
     return 0;
 }
