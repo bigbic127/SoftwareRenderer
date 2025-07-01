@@ -1,11 +1,9 @@
-#pragma once
-
 #include <SDL.h>
 
 class RenderWindowSDL
 {
     public:
-        RenderWindowSDL(int w, int h);
+        RenderWindowSDL(int w=800, int h=600);
         ~RenderWindowSDL();
 
         bool Initalization(int w, int h);
@@ -15,20 +13,22 @@ class RenderWindowSDL
         void Update();
         void Render();
 
-        void SetClearColorBuffer(uint32_t color);
+        void DrawClearColorBuffer(uint32_t color);
+        void DrawGrid(uint32_t color);
+        void DrawRect(int posx, int posy, int width, int height, uint32_t color);
 
     private:
         SDL_Window* window;
         SDL_Renderer* renderer;
         bool bIsLooping = true;
-        int width = 800;
-        int height = 600;
+        int windowWidth = 800;
+        int windowHeight = 600;
         SDL_Event event;
         uint32_t* colorBuffer = nullptr;
         SDL_Texture* colorBufferTexture = nullptr;
 };
 
-RenderWindowSDL::RenderWindowSDL(int w=800, int h=600): width(w), height(h)
+RenderWindowSDL::RenderWindowSDL(int w, int h): windowWidth(w), windowHeight(h)
 {
     if (Initalization(w, h))
     {
@@ -84,8 +84,8 @@ void RenderWindowSDL::LoopEvent()
 
 void RenderWindowSDL::Ready()
 {
-    colorBuffer = new uint32_t[width*height];    
-    colorBufferTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, width, height);
+    colorBuffer = new uint32_t[windowWidth*windowHeight];    
+    colorBufferTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, windowWidth, windowHeight);
 
 }
 
@@ -119,21 +119,49 @@ void RenderWindowSDL::Render()
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
     SDL_RenderClear(renderer);
 
-    SDL_UpdateTexture(colorBufferTexture, nullptr, colorBuffer, (int)(width *sizeof(uint32_t)));
+    SDL_UpdateTexture(colorBufferTexture, nullptr, colorBuffer, (int)(windowWidth *sizeof(uint32_t)));
     SDL_RenderCopy(renderer, colorBufferTexture,NULL, NULL);
 
-    SetClearColorBuffer(0xFFFFFF00);
+    //DrawClearColorBuffer(0xFFFFFF00);
+    DrawGrid(0xFF333333);
+    DrawRect(300,200,100,200,0XFFFFFFFF);
 
     SDL_RenderPresent(renderer);
 }
 
-void RenderWindowSDL::SetClearColorBuffer(uint32_t color)
+void RenderWindowSDL::DrawClearColorBuffer(uint32_t color)
+{
+    for (int y = 0 ; y < windowHeight ; y++) // y += 10 // 10의 배수로 windowHeight 픽셀 검사
+    {
+        for (int x = 0 ; x <windowWidth ; x++) // x += 10 // 10의 배수로 windowWidth 검사
+        {
+            //if (y%10 == 0 || x%10 == 0) // 10의 배수로 그리드 그리기
+            colorBuffer[(windowWidth * y) + x] = color; // 
+        }
+    }
+}
+
+void RenderWindowSDL::DrawGrid(uint32_t color)
+{
+    for (int y = 0 ; y < windowHeight ; y++)
+    {
+        for (int x = 0 ; x <windowWidth ; x++)
+        {
+            if (y%10 == 0 || x%10 == 0)
+                colorBuffer[(windowWidth * y) + x] = color; // 
+        }
+    }
+}
+
+void RenderWindowSDL::DrawRect(int posx, int posy, int width, int height, uint32_t color)
 {
     for (int y = 0 ; y < height ; y++)
     {
-        for (int x = 0 ; x <width ; x++)
+        for (int x = 0 ; x< width ; x++)
         {
-            colorBuffer[(width * y) + x] = color;
+            int currentX = posx + x;
+            int currentY = posy + y;
+            colorBuffer[(windowWidth* currentY)+currentX] = color;
         }
     }
 }
