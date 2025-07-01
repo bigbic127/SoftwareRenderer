@@ -1,10 +1,9 @@
-#pragma once
 
-#include "RenderWindowGLFW.hpp"
+#include "RenderWindowSDL.hpp"
 
 int main(int arg, char** argv)
 {
-    RenderWindowGLFW window = RenderWindowGLFW();
+    RenderWindowSDL window = RenderWindowSDL(800, 600);
     
     return 0;
 }
