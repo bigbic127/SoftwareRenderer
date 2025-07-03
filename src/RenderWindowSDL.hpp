@@ -12,6 +12,7 @@ class RenderWindowSDL
         void DrawClearColorBuffer(uint32_t color);
         void DrawGrid(uint32_t color);
         void DrawRect(int posx, int posy, int width, int height, uint32_t color);
+        void DrawPixel(int posx, int posy, uint32_t color);
 
     protected:
         SDL_Window* window;
