@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SDL.h>
+#include "Camera.hpp"
 
 class RenderWindowSDL
 {
@@ -15,6 +16,7 @@ class RenderWindowSDL
         void DrawGrid(uint32_t color);
         void DrawRect(int posx, int posy, int width, int height, uint32_t color);
         void DrawPixel(int posx, int posy, uint32_t color);
+        void SetCamera(Camera* cam) {camera = cam;}
 
     protected:
         SDL_Window* window;
@@ -25,4 +27,5 @@ class RenderWindowSDL
         SDL_Event event;
         uint32_t* colorBuffer = nullptr;
         SDL_Texture* colorBufferTexture = nullptr;
+        Camera* camera;
 };

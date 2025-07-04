@@ -47,6 +47,7 @@ bool RenderWindowSDL::Initalization()
 void RenderWindowSDL::ProcessInput()
 {
     SDL_PollEvent(&event);
+    Vector3D camPos = camera->GetPosition();
     switch (event.type)
     {
     case SDL_QUIT:
@@ -56,8 +57,21 @@ void RenderWindowSDL::ProcessInput()
     case SDL_KEYDOWN:
         if (event.key.keysym.sym == SDLK_ESCAPE)
             bIsLooping = false;
+            
+        if (event.key.keysym.sym == SDLK_w)
+            camPos.y += 0.05f;
+        else if(event.key.keysym.sym == SDLK_s)
+            camPos.y -= 0.05f;
+        if (event.key.keysym.sym == SDLK_a)
+            camPos.x += 0.05f;
+        else if(event.key.keysym.sym == SDLK_d)
+            camPos.x -= 0.05f;
+        if (event.key.keysym.sym == SDLK_z)
+            camPos.z += 0.05f;
+        else if(event.key.keysym.sym == SDLK_x)
+            camPos.z -= 0.05f;
+        camera->SetPosition(camPos);
         break;
-    
     default:
         break;
     }    

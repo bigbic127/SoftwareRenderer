@@ -28,18 +28,21 @@ void RenderEngine::Ready()
 
 void RenderEngine::Update()
 {
+    //키도 W,S,A,D 로 카메라 위치 변경
+    SetCamera(&camera);
     ProcessInput();
-    
+
     // 3차원 큐브의 포인트좌표를 2D 좌표로 변환
     int pointsNum = cube.GetPointsNum();
     projectPoints = cube.GetProjectPoints();
+    Vector3D camPos = camera.GetPosition();
 
     for (int i = 0 ; i < pointsNum ; i++)
     {
         Vector3D point = cube.GetPoints()[i];
-        point.x -= camera.GetPosition().x;
-        point.y -= camera.GetPosition().y; 
-        point.z -= camera.GetPosition().z;
+        point.x -= camPos.x;
+        point.y -= camPos.y; 
+        point.z -= camPos.z;
 
         Vector2D projectPoint = camera.GetProject(point);
         projectPoints[i] = projectPoint;
