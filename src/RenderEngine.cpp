@@ -1,5 +1,3 @@
-#pragma once
-
 #include "RenderEngine.hpp"
 #include "cube.hpp"
 
@@ -30,7 +28,23 @@ void RenderEngine::Ready()
 
 void RenderEngine::Update()
 {
-    ProcessInput();    
+    ProcessInput();
+    
+    // 3차원 큐브의 포인트좌표를 2D 좌표로 변환
+    int pointsNum = cube.GetPointsNum();
+    projectPoints = cube.GetProjectPoints();
+
+    for (int i = 0 ; i < pointsNum ; i++)
+    {
+        Vector3D point = cube.GetPoints()[i];
+        point.x -= camera.GetPosition().x;
+        point.y -= camera.GetPosition().y; 
+        point.z -= camera.GetPosition().z;
+
+        Vector2D projectPoint = camera.GetProject(point);
+        projectPoints[i] = projectPoint;
+    }
+
 }
 
 void RenderEngine::Render()
@@ -41,7 +55,17 @@ void RenderEngine::Render()
     // 화면에 픽셀 그리기
     DrawClearColorBuffer(0xFF000000);
     DrawGrid(0xFF333333);
-    DrawRect(30, 30, 5, 5, 0XFFFFFFFF);
+    //DrawRect(30, 30, 5, 5, 0XFFFFFFFF);
+
+    //3D큐브 그리기
+    int pointsNum = cube.GetPointsNum();
+    projectPoints = cube.GetProjectPoints();
+    
+    for (int i = 0 ; i < pointsNum ; i++)
+    {
+        Vector2D projectPoint = projectPoints[i];
+        DrawRect(projectPoint.x + (windowWidth/2), projectPoint.y + (windowHeight/2), 5, 5, 0xFFFFFFFF);
+    }
 
     // 컬러버퍼텍스쳐를 업데이트 후 렌더러에 적용
     SDL_UpdateTexture(colorBufferTexture, nullptr, colorBuffer, (int)(windowWidth *sizeof(uint32_t)));

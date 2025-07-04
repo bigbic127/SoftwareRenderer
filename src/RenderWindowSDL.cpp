@@ -1,5 +1,3 @@
-#pragma once
-
 #include "RenderWindowSDL.hpp"
 
 RenderWindowSDL::RenderWindowSDL(int w, int h):windowWidth(w), windowHeight(h)

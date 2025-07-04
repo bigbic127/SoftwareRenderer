@@ -1,4 +1,6 @@
 
+#pragma once
+
 struct Vector2D
 {
     float x;
@@ -11,4 +13,3 @@ struct Vector3D
     float y;
     float z;
 };
-
