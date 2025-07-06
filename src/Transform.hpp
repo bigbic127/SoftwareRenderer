@@ -14,6 +14,8 @@ class Transform
         void SetScale(Vector3D vec) {rotation = vec;}
 
         Vector3D AddRotation_X(Vector3D vec, float angle);
+        Vector3D AddRotation_Y(Vector3D vec, float angle);
+        Vector3D AddRotation_Z(Vector3D vec, float angle);
 
     private:
         Vector3D position = {0,0,0};

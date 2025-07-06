@@ -55,7 +55,10 @@ void RenderEngine::Update()
         Vector3D rot = cube.GetRotation();
         rot.x += 0.001f ;
         cube.SetRotation(rot);
-        point = cube.AddRotation_X(point, rot.x * (3.14 / 180)); 
+        float angle = rot.x * (3.14 / 180);
+        point = cube.AddRotation_X(point, angle);
+        point = cube.AddRotation_Y(point, angle);
+        point = cube.AddRotation_Z(point, angle);
 
         // 큐브 포지션 값에 카메라 위치 값 추가
         point.x -= camPos.x;
