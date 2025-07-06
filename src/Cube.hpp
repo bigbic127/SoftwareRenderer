@@ -3,7 +3,7 @@
 #include "Vector.hpp"
 #include "Transform.hpp"
 
-class Cube
+class Cube: public Transform
 {
     public:
         Cube();

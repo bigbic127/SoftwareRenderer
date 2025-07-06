@@ -1,6 +1,8 @@
 #include "RenderEngine.hpp"
 #include "cube.hpp"
 
+#include <math.h>
+
 RenderEngine::RenderEngine(int w, int h):RenderWindowSDL(w,h)
 {
     Ready();
@@ -28,7 +30,7 @@ void RenderEngine::Ready()
 
 void RenderEngine::Update()
 {
-    //FPS 에 맞춰 시간 딜레이 현재 60fps
+    //FPS 에 맞춰 시간 딜레이
     int time_to_wait = frameSecond - (SDL_GetTicks() - PreviousFrameSecond);
     if (time_to_wait > 0 && time_to_wait <= frameSecond) {
         SDL_Delay(time_to_wait);
@@ -50,13 +52,10 @@ void RenderEngine::Update()
         Vector3D point = cube.GetPoints()[i];
 
         // 큐브 회전
-        Transform transform = cube.GetTransform();
-        Vector3D rot = transform.GetRotation();
-        rot.x += 0.00001f;
-        transform.SetRotation(rot);
-        cube.SetTransform(transform);
-        
-        point = transform.AddRotation_X(point, rot.x);
+        Vector3D rot = cube.GetRotation();
+        rot.x += 0.001f ;
+        cube.SetRotation(rot);
+        point = cube.AddRotation_X(point, rot.x * (3.14 / 180)); 
 
         // 큐브 포지션 값에 카메라 위치 값 추가
         point.x -= camPos.x;
