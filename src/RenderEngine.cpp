@@ -28,6 +28,14 @@ void RenderEngine::Ready()
 
 void RenderEngine::Update()
 {
+    //FPS 에 맞춰 시간 딜레이 현재 60fps
+    int time_to_wait = frameSecond - (SDL_GetTicks() - PreviousFrameSecond);
+    if (time_to_wait > 0 && time_to_wait <= frameSecond) {
+        SDL_Delay(time_to_wait);
+    }
+    PreviousFrameSecond = SDL_GetTicks();
+
+
     //키도 W,S,A,D 로 카메라 위치 변경
     SetCamera(&camera);
     ProcessInput();
@@ -40,6 +48,17 @@ void RenderEngine::Update()
     for (int i = 0 ; i < pointsNum ; i++)
     {
         Vector3D point = cube.GetPoints()[i];
+
+        // 큐브 회전
+        Transform transform = cube.GetTransform();
+        Vector3D rot = transform.GetRotation();
+        rot.x += 0.00001f;
+        transform.SetRotation(rot);
+        cube.SetTransform(transform);
+        
+        point = transform.AddRotation_X(point, rot.x);
+
+        // 큐브 포지션 값에 카메라 위치 값 추가
         point.x -= camPos.x;
         point.y -= camPos.y; 
         point.z -= camPos.z;

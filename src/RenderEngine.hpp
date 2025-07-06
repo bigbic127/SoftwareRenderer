@@ -20,5 +20,9 @@ class RenderEngine : RenderWindowSDL
         Cube cube;
 
         Vector2D* projectPoints;
+
+        static const int FPS = 200;
+        float frameSecond = 1000/FPS;
+        float PreviousFrameSecond = 0.0f;
 };
 

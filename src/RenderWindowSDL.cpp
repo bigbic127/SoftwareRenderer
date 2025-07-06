@@ -48,6 +48,7 @@ void RenderWindowSDL::ProcessInput()
 {
     SDL_PollEvent(&event);
     Vector3D camPos = camera->GetPosition();
+    float fov = camera->GetFov();
     switch (event.type)
     {
     case SDL_QUIT:
@@ -70,7 +71,12 @@ void RenderWindowSDL::ProcessInput()
             camPos.z += 0.05f;
         else if(event.key.keysym.sym == SDLK_x)
             camPos.z -= 0.05f;
+        if (event.key.keysym.sym == SDLK_c)
+            fov += 10.0f;
+        else if(event.key.keysym.sym == SDLK_v)
+            fov -= 10.0f;
         camera->SetPosition(camPos);
+        camera->SetFov(fov);
         break;
     default:
         break;
