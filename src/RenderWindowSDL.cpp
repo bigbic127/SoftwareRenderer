@@ -111,10 +111,10 @@ void RenderWindowSDL::DrawRect(int posx, int posy, int width, int height, uint32
 {
     for (int y = 0 ; y < height ; y++)
     {
-        for (int x = 0 ; x< width ; x++)
+        for (int x = 0 ; x < width ; x++)
         {
-            int currentX = posx + x;
-            int currentY = posy + y;
+            int currentX = posx + (width - x);
+            int currentY = posy + (height - y);
             DrawPixel(currentX, currentY, color);
         }
     }
@@ -122,6 +122,32 @@ void RenderWindowSDL::DrawRect(int posx, int posy, int width, int height, uint32
 
 void RenderWindowSDL::DrawPixel(int posx, int posy, uint32_t color)
 {
-    if (posx >= 0 && posx < windowWidth && posy >= 0 && posy < windowHeight)
-        colorBuffer[(windowWidth* posy)+ posx] = color;
+    //화면 중앙으로 위치
+    int currentX = posx + (windowWidth/2);
+    int currentY = posy + (windowHeight/2);
+    if (currentX >= 0 && currentX < windowWidth && currentY >= 0 && currentY < windowHeight)
+    {
+        colorBuffer[(windowWidth * currentY)+ currentX] = color;
+    }
+}
+
+void RenderWindowSDL::DrawLine(int x0, int y0, int x1, int y1, uint32_t color)
+{
+    int x = x1 - x0;
+    int y = y1 - y0;
+
+    int length = (abs(x) >= abs(y)) ? abs(x) : abs(y) ;
+
+    float xInc = x/(float)length;
+    float yInc = y/(float)length;
+
+    float currentX = x0;
+    float currentY = y0; 
+
+    for (int i = 0; i <= length; i++) {
+        //DrawPixel(round(currentX), round(currentY), color);
+        DrawRect(round(currentX), round(currentY), 1, 1, color);
+        currentX += xInc;
+        currentY += yInc;
+    }
 }

@@ -3,6 +3,7 @@
 #include "RenderWindowSDL.hpp"
 #include "Camera.hpp"
 #include "Cube.hpp"
+#include "Mesh.hpp"
 #include "Vector.hpp"
 
 class RenderEngine : RenderWindowSDL
@@ -18,6 +19,7 @@ class RenderEngine : RenderWindowSDL
     private:
         Camera camera;
         Cube cube;
+        Mesh mesh;
 
         Vector2D* projectPoints;
 

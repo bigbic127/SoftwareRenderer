@@ -3,8 +3,8 @@
 
 struct Vector2D
 {
-    float x;
-    float y;
+    int x;
+    int y;
 };
 
 struct Vector3D
@@ -12,4 +12,11 @@ struct Vector3D
     float x;
     float y;
     float z;
+};
+
+struct Triangle
+{
+    int x;
+    int y;
+    int z;
 };

@@ -16,6 +16,7 @@ class RenderWindowSDL
         void DrawGrid(uint32_t color);
         void DrawRect(int posx, int posy, int width, int height, uint32_t color);
         void DrawPixel(int posx, int posy, uint32_t color);
+        void DrawLine(int sx, int sy, int ex, int ey, uint32_t color);
         void SetCamera(Camera* cam) {camera = cam;}
 
     protected:
