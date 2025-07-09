@@ -1,6 +1,11 @@
 #pragma once
+
+#include <vector>
+
 #include "Transform.hpp"
 #include "Vector.hpp"
+
+using namespace std;
 
 class Mesh: public Transform
 {

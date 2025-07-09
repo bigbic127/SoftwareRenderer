@@ -54,12 +54,12 @@ void RenderEngine::Update()
 
         // 큐브 회전
         Vector3D rot = mesh.GetRotation();
-        rot.x += 0.01f ;
+        rot.y = 35.0f;
         mesh.SetRotation(rot);
-        float angle = rot.x * (3.14 / 180);
-        point = mesh.AddRotation_X(point, angle);
+        float angle = rot.y * (3.14 / 180);
+        //point = mesh.AddRotation_X(point, angle);
         point = mesh.AddRotation_Y(point, angle);
-        point = mesh.AddRotation_Z(point, angle);
+        //point = mesh.AddRotation_Z(point, angle);
 
         // 큐브 포지션 값에 카메라 위치 값 추가
         point.x -= camPos.x;
