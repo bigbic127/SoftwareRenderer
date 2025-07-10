@@ -3,8 +3,7 @@
 Mesh::Mesh()
 {
     // 박스 생성
-    verticeNum = 8;
-    vertices = new Vector3D[8]{
+    vertices = {
         {-1, 1, -1},
         {1, 1, -1},
         {1, -1, -1},
@@ -14,8 +13,8 @@ Mesh::Mesh()
         {-1, 1, 1},
         {-1, -1, 1}
     };
-    indicesNum = 12;
-    indices = new Triangle[12]{
+    
+    indices = {
         //삼각형 그리기 시계방향으로 vertices 인텍스 번호
         {3, 0, 1},
         {3, 1, 2},
@@ -30,5 +29,4 @@ Mesh::Mesh()
         {2, 1, 6},
         {2, 6, 7}
     };
-    projectPoints = new Vector2D[verticeNum];
 }

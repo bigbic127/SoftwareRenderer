@@ -6,6 +6,8 @@
 #include "Mesh.hpp"
 #include "Vector.hpp"
 
+#include <vector>
+
 class RenderEngine : RenderWindowSDL
 {
     public:

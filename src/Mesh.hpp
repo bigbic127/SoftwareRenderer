@@ -11,17 +11,13 @@ class Mesh: public Transform
 {
     public:
         Mesh();
-        const int GetVerticeNum() const {return verticeNum;}
-        const int GetIndicesNum() const {return indicesNum;}
-        const Vector3D* GetVertices() const {return vertices;}
-        Triangle* GetIndices() {return indices;}
-        Vector2D* GetProjectPoints() {return projectPoints;}
+        vector<Vector3D>& GetVertices() {return vertices;}
+        vector<Triangle>& GetIndices() {return indices;}
+        vector<Vector2D>& GetProjectPoints() {return projectPoints;}
 
 
     private:
-        int verticeNum = 0;
-        int indicesNum = 0;
-        Vector3D* vertices;
-        Triangle* indices;
-        Vector2D* projectPoints;
+        vector<Vector3D> vertices;
+        vector<Triangle> indices;
+        vector<Vector2D> projectPoints;
 };

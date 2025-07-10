@@ -1,6 +1,7 @@
 #include "RenderEngine.hpp"
 #include "cube.hpp"
 #include "Mesh.hpp"
+#include "File.hpp"
 
 #include <math.h>
 
@@ -27,6 +28,16 @@ void RenderEngine::Ready()
     if (Initalization())
         bIsLooping = true;
 
+    vector<Vector3D>& tVertices = mesh.GetVertices();
+    vector<Triangle>& tIndices = mesh.GetIndices();
+    vector<Vector2D>& tProjectPostions = mesh.GetProjectPoints();
+
+    tVertices.clear();
+    tIndices.clear();
+    LoadObjFile("../obj/teddy.obj", tVertices, tIndices);
+
+    tProjectPostions.resize(tVertices.size());
+
 }
 
 void RenderEngine::Update()
@@ -44,8 +55,8 @@ void RenderEngine::Update()
     ProcessInput();
 
     // 메쉬(큐브) 포인트좌표를 2D 좌표로 변환
-    int pointsNum = mesh.GetVerticeNum();
-    projectPoints = mesh.GetProjectPoints();
+    int pointsNum = mesh.GetVertices().size();
+    vector<Vector2D>& projectPoints = mesh.GetProjectPoints();
     Vector3D camPos = camera.GetPosition();
 
     for (int i = 0 ; i < pointsNum ; i++)
@@ -54,11 +65,13 @@ void RenderEngine::Update()
 
         // 큐브 회전
         Vector3D rot = mesh.GetRotation();
-        rot.y = 35.0f;
+        rot.x = 180.0f;
+        rot.y = -45.0f;
         mesh.SetRotation(rot);
-        float angle = rot.y * (3.14 / 180);
-        //point = mesh.AddRotation_X(point, angle);
-        point = mesh.AddRotation_Y(point, angle);
+        float angleX = rot.x * (3.14 / 180);
+        float angleY = rot.y * (3.14 / 180);
+        point = mesh.AddRotation_X(point, angleX);
+        point = mesh.AddRotation_Y(point, angleY);
         //point = mesh.AddRotation_Z(point, angle);
 
         // 큐브 포지션 값에 카메라 위치 값 추가
@@ -84,16 +97,17 @@ void RenderEngine::Render()
     //DrawRect(30, 30, 5, 5, 0XFFFFFFFF);
 
     //메쉬 큐브 그리기
-    int pointsNum = mesh.GetVerticeNum();
-    projectPoints = mesh.GetProjectPoints();
+    int pointsNum = mesh.GetVertices().size();
+    vector<Vector2D> projectPoints = mesh.GetProjectPoints();
     
     for (int i = 0 ; i < pointsNum ; i++)
     {
         Vector2D projectPoint = projectPoints[i];
         DrawRect(projectPoint.x, projectPoint.y, 2, 2, 0xFFFFFFFF);
     }
-    int indiceNum = mesh.GetIndicesNum();
-    Triangle* triangle = mesh.GetIndices();
+
+    const vector<Triangle>& triangle = mesh.GetIndices();
+    int indiceNum = triangle.size();
     for (int i = 0 ; i < indiceNum; i++)
     {
         int x = triangle[i].x;
