@@ -28,6 +28,8 @@ void RenderEngine::Ready()
     if (Initalization())
         bIsLooping = true;
 
+    //Ojb import
+    /*
     vector<Vector3D>& tVertices = mesh.GetVertices();
     vector<Triangle>& tIndices = mesh.GetIndices();
     vector<Vector2D>& tProjectPostions = mesh.GetProjectPoints();
@@ -35,9 +37,8 @@ void RenderEngine::Ready()
     tVertices.clear();
     tIndices.clear();
     LoadObjFile("../obj/teddy.obj", tVertices, tIndices);
-
     tProjectPostions.resize(tVertices.size());
-
+    */
 }
 
 void RenderEngine::Update()
@@ -58,21 +59,19 @@ void RenderEngine::Update()
     int pointsNum = mesh.GetVertices().size();
     vector<Vector2D>& projectPoints = mesh.GetProjectPoints();
     Vector3D camPos = camera.GetPosition();
+    vector<Vector3D>& vertice = mesh.GetVertices();
 
     for (int i = 0 ; i < pointsNum ; i++)
     {
-        Vector3D point = mesh.GetVertices()[i];
+        Vector3D point = vertice[i];
 
         // 큐브 회전
         Vector3D rot = mesh.GetRotation();
-        rot.x = 180.0f;
-        rot.y = -45.0f;
+        rot.y = 0.5f;
         mesh.SetRotation(rot);
-        float angleX = rot.x * (3.14 / 180);
-        float angleY = rot.y * (3.14 / 180);
-        point = mesh.AddRotation_X(point, angleX);
-        point = mesh.AddRotation_Y(point, angleY);
-        //point = mesh.AddRotation_Z(point, angle);
+        float angle = rot.y * (3.14 / 180);
+        point = mesh.AddRotation_Y(point, angle);
+        vertice[i] = point;
 
         // 큐브 포지션 값에 카메라 위치 값 추가
         point.x -= camPos.x;
@@ -103,9 +102,10 @@ void RenderEngine::Render()
     for (int i = 0 ; i < pointsNum ; i++)
     {
         Vector2D projectPoint = projectPoints[i];
-        DrawRect(projectPoint.x, projectPoint.y, 2, 2, 0xFFFFFFFF);
+        //DrawRect(projectPoint.x, projectPoint.y, 5, 5, 0xFFFF0000);
     }
 
+    const vector<Vector3D>& vertices = mesh.GetVertices();
     const vector<Triangle>& triangle = mesh.GetIndices();
     int indiceNum = triangle.size();
     for (int i = 0 ; i < indiceNum; i++)
@@ -114,9 +114,31 @@ void RenderEngine::Render()
         int y = triangle[i].y;
         int z = triangle[i].z;
 
+        // backface culling 구현
+        Vector3D v1 = vertices[x];
+        Vector3D v2 = vertices[y];
+        Vector3D v3 = vertices[z];
+
+        Vector3D sV1 = SubVector(v2,v1);
+        Vector3D sV2 = SubVector(v3,v1);
+        Vector3D camV = SubVector(v1,camera.GetPosition());
+        Normalize(sV1);
+        Normalize(sV2);
+        Normalize(camV);
+        Vector3D cV = GetCrossVector(sV2,sV1);
+        Normalize(cV);
+        float dot = GetDotVector(camV, cV);
+        if (dot < 0)
+            continue;
+
+        // 삼각형 라인 그리기
         Vector2D line01 = projectPoints[x];
         Vector2D line02 = projectPoints[y];
         Vector2D line03 = projectPoints[z];
+
+        DrawRect(line01.x, line01.y, 5, 5, 0xFFFF0000);
+        DrawRect(line02.x, line02.y, 5, 5, 0xFFFF0000);
+        DrawRect(line03.x, line03.y, 5, 5, 0xFFFF0000);
 
         DrawLine(line01.x, line01.y, line02.x, line02.y, 0xFFFFFFFF);
         DrawLine(line02.x, line02.y, line03.x, line03.y, 0xFFFFFFFF);

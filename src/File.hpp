@@ -37,11 +37,17 @@ void LoadObjFile(const string& path, vector<Vector3D>& vertices, vector<Triangle
         else if (prefix == "f")
         {
             Triangle f;
-            iss >> f.x >> f.y >> f.z;
-            f.x -=1;
-            f.y -=1;
-            f.z -=1;
-            indices.push_back(f);
+            if (line.find('/') != std::string::npos)
+            {
+                
+            }else
+            {
+                iss >> f.x >> f.y >> f.z;
+                f.x -=1;
+                f.y -=1;
+                f.z -=1;
+                indices.push_back(f);
+            }
         }
     }    
 }

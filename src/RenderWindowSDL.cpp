@@ -113,8 +113,8 @@ void RenderWindowSDL::DrawRect(int posx, int posy, int width, int height, uint32
     {
         for (int x = 0 ; x < width ; x++)
         {
-            int currentX = posx + (width - x);
-            int currentY = posy + (height - y);
+            int currentX = posx + ((width/2) - x);
+            int currentY = posy + ((width/2) - y);
             DrawPixel(currentX, currentY, color);
         }
     }

@@ -1,8 +1,13 @@
 # SoftwareRenderer
 소프트웨어 렌더러 학습
 
-1. box 그리기
+1. 큐브 그리기, 라인 그리기
 ![alt text](/screenshot/cube.png)
 
-2. obj 파일 그리기
+
+2. Obj 파일 불러오기
 ![alt text](/screenshot/teddy.png)
+
+
+3. Backface Culling 구현
+![alt text](/screenshot/backfaceculling.png)
