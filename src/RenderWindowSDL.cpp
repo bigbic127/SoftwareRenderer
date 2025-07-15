@@ -1,4 +1,5 @@
 #include "RenderWindowSDL.hpp"
+#include "Util.hpp"
 
 RenderWindowSDL::RenderWindowSDL(int w, int h):windowWidth(w), windowHeight(h)
 {
@@ -149,5 +150,73 @@ void RenderWindowSDL::DrawLine(int x0, int y0, int x1, int y1, uint32_t color)
         DrawRect(round(currentX), round(currentY), 1, 1, color);
         currentX += xInc;
         currentY += yInc;
+    }
+}
+
+void RenderWindowSDL::DrawFill(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color)
+{
+    if (y0 > y1)
+    {
+        SwapInt(&y0, &y1);
+        SwapInt(&x0, &x1);
+    }
+    if (y1 > y2)
+    {
+        SwapInt(&y1, &y2);
+        SwapInt(&x1, &x2);
+    }
+    if (y0 > y1)
+    {
+        SwapInt(&y0, &y1);
+        SwapInt(&x0, &x1);
+    }
+
+    if (y1 == y2)
+    {
+        DrawFillBottom(x0, y0, x1, y1, x2, y2, color);
+    }
+    else if (y0 == y1)
+    {
+        DrawFillTop(x0, y0, x1, y1, x2, y2, color);
+    }
+    else
+    {
+        int My = y1;
+        int Mx = (((x2 - x0) * (y1 - y0)) / (y2 - y0)) + x0;
+
+        DrawFillBottom(x0, y0, x1, y1, Mx, My, color);
+        DrawFillTop(x1, y1, Mx, My, x2, y2, color);
+    }
+
+}
+
+void RenderWindowSDL::DrawFillBottom(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color)
+{
+    float inv_slope_1 = (float)(x1 - x0) / (y1 - y0);
+    float inv_slope_2 = (float)(x2 - x0) / (y2 - y0);
+
+    float x_start = x0;
+    float x_end = x0;
+
+    for (int y = y0; y <= y2; y++)
+    {
+        DrawLine(x_start, y, x_end, y, color);
+        x_start += inv_slope_1;
+        x_end += inv_slope_2;
+    }
+}
+
+void RenderWindowSDL::DrawFillTop(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color)
+{
+    float inv_slope_1 = (float)(x2 - x0) / (y2 - y0);
+    float inv_slope_2 = (float)(x2 - x1) / (y2 - y1);
+
+    float x_start = x2;
+    float x_end = x2;
+
+    for (int y = y2; y >= y0; y--) {
+        DrawLine(x_start, y, x_end, y, color);
+        x_start -= inv_slope_1;
+        x_end -= inv_slope_2;
     }
 }

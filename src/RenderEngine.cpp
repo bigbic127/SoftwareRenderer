@@ -131,18 +131,21 @@ void RenderEngine::Render()
         if (dot < 0)
             continue;
 
-        // 삼각형 라인 그리기
         Vector2D line01 = projectPoints[x];
         Vector2D line02 = projectPoints[y];
         Vector2D line03 = projectPoints[z];
 
-        DrawRect(line01.x, line01.y, 5, 5, 0xFFFF0000);
-        DrawRect(line02.x, line02.y, 5, 5, 0xFFFF0000);
-        DrawRect(line03.x, line03.y, 5, 5, 0xFFFF0000);
-
+        uint32_t color = mesh.GetColors()[i];
+        // 면 그리기
+        DrawFill(line01.x, line01.y, line02.x, line02.y, line03.x, line03.y, 0xFFAAAAAA);
+        // 삼각형 라인 그리기
         DrawLine(line01.x, line01.y, line02.x, line02.y, 0xFFFFFFFF);
         DrawLine(line02.x, line02.y, line03.x, line03.y, 0xFFFFFFFF);
         DrawLine(line01.x, line01.y, line03.x, line03.y, 0xFFFFFFFF);
+        // 점 그리기
+        DrawRect(line01.x, line01.y, 5, 5, 0xFFFF0000);
+        DrawRect(line02.x, line02.y, 5, 5, 0xFFFF0000);
+        DrawRect(line03.x, line03.y, 5, 5, 0xFFFF0000);
     }
 
     // 컬러버퍼텍스쳐를 업데이트 후 렌더러에 적용

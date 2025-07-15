@@ -15,6 +15,7 @@ class Mesh: public Transform
         vector<Triangle>& GetIndices() {return indices;}
         vector<Vector2D>& GetProjectPoints() {return projectPoints;}
         vector<Vector3D>& GetNormals() {return normals;}
+        vector<uint32_t>& GetColors() {return colors;}
 
 
     private:
@@ -22,4 +23,5 @@ class Mesh: public Transform
         vector<Triangle> indices;
         vector<Vector2D> projectPoints;
         vector<Vector3D> normals;
+        vector<uint32_t> colors;
 };

@@ -30,6 +30,21 @@ Mesh::Mesh()
         {5, 6, 7}
     };
 
+    colors = {
+        0xFFFF0000,
+        0xFFFF0000,
+        0xFF00FF00,
+        0xFF00FF00,
+        0xFF0000FF,
+        0xFF0000FF,
+        0xFF000000,
+        0xFF000000,
+        0xFFFFFFFF,
+        0xFFFFFFFF,
+        0xFFFFFFFF,
+        0xFFFFFFFF
+    };
+
     projectPoints.resize(vertices.size());
 
 }
