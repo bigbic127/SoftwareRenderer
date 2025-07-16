@@ -11,6 +11,6 @@ class Camera
         void SetFov(float fov) {fovValue = fov;}
         const float GetFov() const {return fovValue;}
     private:
-        float fovValue = 500.0f;
-        Vector3D position = {0, -1.5, -5};
+        float fovValue = 15000.0f; //500.0f
+        Vector3D position = {0, -0.1, -5};// -1.5, -5
 };

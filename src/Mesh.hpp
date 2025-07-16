@@ -16,6 +16,8 @@ class Mesh: public Transform
         vector<Vector2D>& GetProjectPoints() {return projectPoints;}
         vector<Vector3D>& GetNormals() {return normals;}
         vector<uint32_t>& GetColors() {return colors;}
+        vector<Vector3D>& GetPoints() {return points;}
+
 
 
     private:
@@ -24,4 +26,6 @@ class Mesh: public Transform
         vector<Vector2D> projectPoints;
         vector<Vector3D> normals;
         vector<uint32_t> colors;
+        vector<Vector3D> points;
+
 };

@@ -4,6 +4,7 @@
 #include "File.hpp"
 
 #include <math.h>
+#include <algorithm>
 
 RenderEngine::RenderEngine(int w, int h):RenderWindowSDL(w,h)
 {
@@ -32,12 +33,14 @@ void RenderEngine::Ready()
     vector<Vector3D>& tVertices = mesh.GetVertices();
     vector<Triangle>& tIndices = mesh.GetIndices();
     vector<Vector2D>& tProjectPostions = mesh.GetProjectPoints();
+    vector<Vector3D>& tpoints = mesh.GetPoints();
 
     tVertices.clear();
     tIndices.clear();
-    LoadObjFile("../obj/teapot.obj", tVertices, tIndices);
-    tProjectPostions.resize(tVertices.size());
+    tpoints.clear();
 
+    LoadObjFile("../obj/bunny.obj", tVertices, tIndices);
+    tProjectPostions.resize(tVertices.size());
     //obj 초기 회전 변경
     for (int i = 0 ; i < tVertices.size() ; i++)
     {
@@ -51,8 +54,7 @@ void RenderEngine::Ready()
         point = mesh.AddRotation_X(point, angle);
         tVertices[i] = point;
     }
-
-
+    tpoints = tVertices;
 }
 
 void RenderEngine::Update()
@@ -74,6 +76,7 @@ void RenderEngine::Update()
     vector<Vector2D>& projectPoints = mesh.GetProjectPoints();
     Vector3D camPos = camera.GetPosition();
     vector<Vector3D>& vertice = mesh.GetVertices();
+    vector<Vector3D>& points = mesh.GetPoints();
 
     for (int i = 0 ; i < pointsNum ; i++)
     {
@@ -81,17 +84,18 @@ void RenderEngine::Update()
 
         // 큐브 회전
         Vector3D rot = mesh.GetRotation();
-        rot.y = 0.5f;
+        rot.y -= 0.0001f;
         mesh.SetRotation(rot);
         float angle = rot.y * (3.14 / 180);
         point = mesh.AddRotation_Y(point, angle);
 
-        vertice[i] = point;
-
         // 큐브 포지션 값에 카메라 위치 값 추가
         point.x -= camPos.x;
         point.y -= camPos.y; 
-        point.z -= camPos.z - 2;
+        point.z -= camPos.z;
+
+        // 변경된 포지션 값을 저장
+        points[i] = point;
 
         Vector2D projectPoint = camera.GetProject(point);
         projectPoints[i] = projectPoint;
@@ -120,9 +124,19 @@ void RenderEngine::Render()
         //DrawRect(projectPoint.x, projectPoint.y, 5, 5, 0xFFFF0000);
     }
 
-    const vector<Vector3D>& vertices = mesh.GetVertices();
-    const vector<Triangle>& triangle = mesh.GetIndices();
+    const vector<Vector3D>& vertices = mesh.GetPoints();
+    vector<Triangle>& triangle = mesh.GetIndices();
     int indiceNum = triangle.size();
+
+    // Z-버퍼 면 그리는 순서 정렬
+    std::sort(triangle.begin(), triangle.end(),
+        [&](const Triangle& a, const Triangle& b)
+        {
+            float avgA = (vertices[a.x].z + vertices[a.y].z + vertices[a.z].z) / 3.0f;
+            float avgB = (vertices[b.x].z + vertices[b.y].z + vertices[b.z].z) / 3.0f;
+            return avgA > avgB; // 오름차순 정렬 (작은 z 평균이 먼저)
+        });
+
     for (int i = 0 ; i < indiceNum; i++)
     {
         int x = triangle[i].x;
