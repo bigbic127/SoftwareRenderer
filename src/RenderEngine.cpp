@@ -29,16 +29,30 @@ void RenderEngine::Ready()
         bIsLooping = true;
 
     //Ojb import
-    /*
     vector<Vector3D>& tVertices = mesh.GetVertices();
     vector<Triangle>& tIndices = mesh.GetIndices();
     vector<Vector2D>& tProjectPostions = mesh.GetProjectPoints();
 
     tVertices.clear();
     tIndices.clear();
-    LoadObjFile("../obj/teddy.obj", tVertices, tIndices);
+    LoadObjFile("../obj/teapot.obj", tVertices, tIndices);
     tProjectPostions.resize(tVertices.size());
-    */
+
+    //obj 초기 회전 변경
+    for (int i = 0 ; i < tVertices.size() ; i++)
+    {
+        Vector3D point = tVertices[i];
+
+        // 큐브 회전
+        Vector3D rot = mesh.GetRotation();
+        rot.x = 180;
+        mesh.SetRotation(rot);
+        float angle = rot.x * (3.14 / 180);
+        point = mesh.AddRotation_X(point, angle);
+        tVertices[i] = point;
+    }
+
+
 }
 
 void RenderEngine::Update()
@@ -71,12 +85,13 @@ void RenderEngine::Update()
         mesh.SetRotation(rot);
         float angle = rot.y * (3.14 / 180);
         point = mesh.AddRotation_Y(point, angle);
+
         vertice[i] = point;
 
         // 큐브 포지션 값에 카메라 위치 값 추가
         point.x -= camPos.x;
         point.y -= camPos.y; 
-        point.z -= camPos.z;
+        point.z -= camPos.z - 2;
 
         Vector2D projectPoint = camera.GetProject(point);
         projectPoints[i] = projectPoint;
@@ -135,17 +150,21 @@ void RenderEngine::Render()
         Vector2D line02 = projectPoints[y];
         Vector2D line03 = projectPoints[z];
 
-        uint32_t color = mesh.GetColors()[i];
+        //면 색상
+        uint32_t color = 0xFFAAAAAA;
+        if (mesh.GetColors().size() >= indiceNum)
+            color = mesh.GetColors()[i];
+        
         // 면 그리기
-        DrawFill(line01.x, line01.y, line02.x, line02.y, line03.x, line03.y, 0xFFAAAAAA);
+        DrawFill(line01.x, line01.y, line02.x, line02.y, line03.x, line03.y, color);// 0xFFAAAAAA);
         // 삼각형 라인 그리기
         DrawLine(line01.x, line01.y, line02.x, line02.y, 0xFFFFFFFF);
         DrawLine(line02.x, line02.y, line03.x, line03.y, 0xFFFFFFFF);
         DrawLine(line01.x, line01.y, line03.x, line03.y, 0xFFFFFFFF);
         // 점 그리기
-        DrawRect(line01.x, line01.y, 5, 5, 0xFFFF0000);
-        DrawRect(line02.x, line02.y, 5, 5, 0xFFFF0000);
-        DrawRect(line03.x, line03.y, 5, 5, 0xFFFF0000);
+        DrawRect(line01.x, line01.y, 2, 2, 0xFFFF0000);
+        DrawRect(line02.x, line02.y, 2, 2, 0xFFFF0000);
+        DrawRect(line03.x, line03.y, 2, 2, 0xFFFF0000);
     }
 
     // 컬러버퍼텍스쳐를 업데이트 후 렌더러에 적용

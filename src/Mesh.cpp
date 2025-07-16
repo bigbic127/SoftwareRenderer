@@ -37,12 +37,12 @@ Mesh::Mesh()
         0xFF00FF00,
         0xFF0000FF,
         0xFF0000FF,
-        0xFF000000,
-        0xFF000000,
-        0xFFFFFFFF,
-        0xFFFFFFFF,
-        0xFFFFFFFF,
-        0xFFFFFFFF
+        0xFFFFFF00,
+        0xFFFFFF00,
+        0xFFFF00FF,
+        0xFFFF00FF,
+        0xFF00FFFF,
+        0xFF00FFFF
     };
 
     projectPoints.resize(vertices.size());

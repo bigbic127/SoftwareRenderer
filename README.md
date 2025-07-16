@@ -33,3 +33,5 @@
 4. 면 그리기
 
 ![alt text](/screenshot/face.png)
+
+![alt text](/screenshot/objface.png)
