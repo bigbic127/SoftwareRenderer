@@ -128,7 +128,7 @@ void RenderEngine::Render()
     vector<Triangle>& triangle = mesh.GetIndices();
     int indiceNum = triangle.size();
 
-    // Z-버퍼 면 그리는 순서 정렬
+    // 면 그리는 순서 정렬
     std::sort(triangle.begin(), triangle.end(),
         [&](const Triangle& a, const Triangle& b)
         {
