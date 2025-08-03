@@ -1,60 +1,69 @@
-
 #pragma once
-#include <math.h>
 
-struct Vector2D
+#include <cmath>
+
+class Vector2
 {
-    float x;
-    float y;
+    public:
+        Vector2() : x(0), y(0){}
+        Vector2(float _x, float _y) : x(_x), y(_y){}
+    public:
+        float x, y;
 };
 
-struct Vector3D
+class Vector3
 {
-    float x;
-    float y;
-    float z;
+    public:
+        Vector3() : x(0), y(0), z(0) {}
+        Vector3(float _x, float _y, float _z) : x(_x), y(_y), z(_z) {}
+
+        Vector3 operator+(const Vector3& vec) const
+        {
+            return Vector3(x + vec.x, y + vec.y, z + vec.z);
+        }
+        Vector3 operator-(const Vector3& vec) const
+        {
+            return Vector3(x - vec.x, y - vec.y, z - vec.z);
+        }
+        Vector3 operator*(float scalar) const
+        {
+            return Vector3(x * scalar, y * scalar, z * scalar);
+        }
+        Vector3 operator/(float scalar) const
+        {
+            return Vector3(x / scalar, y / scalar, z / scalar);
+        }
+        float Dot(const Vector3& vec) const
+        {
+            return x * vec.x + y * vec.y + z * vec.z;
+        }
+        Vector3 Cross(const Vector3& vec) const
+        {
+            return Vector3(
+                y * vec.z - z * vec.y,
+                z * vec.x - x * vec.z,
+                x * vec.y - y * vec.x
+            );
+        }
+        float Length() const
+        {
+            return std::sqrt(x*x + y*y + z*z);
+        }
+        Vector3 Normalized() const
+        {
+            float len = Length();
+            if (len == 0) return Vector3(0,0,0);
+            return (*this) / len;
+        }
+    public:
+        float x, y, z;
 };
 
-struct Triangle
+class Triangle
 {
-    int x;
-    int y;
-    int z;
+    public:
+        Triangle() : a(0), b(0), c(0) {}
+        Triangle(int _a, int _b, int _c) : a(_a), b(_b), c(_c) {}
+    public:
+        int a, b, c;
 };
-
-
-static Vector3D GetCrossVector(Vector3D vec1, Vector3D vec2)
-{
-    Vector3D vec;
-    vec.x = vec1.y * vec2.z - vec1.z * vec2.y;
-    vec.y = vec1.z * vec2.x - vec1.x * vec2.z;
-    vec.z = vec1.x * vec2.y - vec1.y * vec2.x;
-    return vec;
-}
-
-static float GetDotVector(Vector3D vec1, Vector3D vec2) {
-    return (vec1.x * vec2.x) + (vec1.y * vec2.y) + (vec1.z * vec2.z);
-}
-
-static void Normalize(Vector3D& vec) {
-    float length = sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
-    vec.x /= length;
-    vec.y /= length;
-    vec.z /= length;
-}
-
-static Vector3D AddVector(Vector3D a, Vector3D b) {
-    Vector3D result;
-    result.x = a.x + b.x;
-    result.y = a.y + b.y;
-    result.z = a.z + b.z;
-    return result;
-}
-
-static Vector3D SubVector(Vector3D a, Vector3D b) {
-    Vector3D result;
-    result.x = a.x - b.x;
-    result.y = a.y - b.y;
-    result.z = a.z - b.z;
-    return result;
-}

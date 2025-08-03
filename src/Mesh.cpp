@@ -29,7 +29,7 @@ Mesh::Mesh()
         {5, 4, 6},
         {5, 6, 7}
     };
-
+    // 박스 면 색상
     colors = {
         0xFFFF0000,
         0xFFFF0000,
@@ -44,7 +44,4 @@ Mesh::Mesh()
         0xFF00FFFF,
         0xFF00FFFF
     };
-
-    projectPoints.resize(vertices.size());
-
 }
