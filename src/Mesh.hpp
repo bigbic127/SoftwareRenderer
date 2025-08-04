@@ -12,7 +12,7 @@ class Mesh
         Mesh();
         vector<Vector3>& GetVertices() {return vertices;}
         vector<Triangle>& GetIndices() {return indices;}
-
+        Transform& GetTransform() {return transform;}
     private:
         vector<Vector3> vertices;
         vector<Triangle> indices;

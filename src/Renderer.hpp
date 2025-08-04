@@ -1,6 +1,8 @@
 #pragma once
 #include "Window.hpp"
 #include "Vector.hpp"
+#include "Camera.hpp"
+#include "Mesh.hpp"
 #include <vector>
 
 using namespace std;
@@ -29,4 +31,7 @@ class Renderer : public Window
         float previousFrameSecond = 0.0f;
         bool bIsLooping = false;
         vector<Vector2> projectionPoints;
+        vector<Vector3> meshes;
+        Mesh mesh;
+        Camera camera;
 };
