@@ -1,6 +1,7 @@
 #include "Renderer.hpp"
 #include "Mesh.hpp"
 #include "Transform.hpp"
+#include "Camera.hpp"
 
 Renderer::Renderer()
 {
@@ -27,25 +28,25 @@ void Renderer::Ready()
         Quit();
     
     // 메쉬 벌텍스를 2D프로젝션포인트로 변환
-    int fovValue = 200;
+    Camera camera;
+    camera.SetLookAt(Vector3(0.f,0.f, 5.f), Vector3(0.f,0.f,0.f), Vector3(0.f,1.f,0.f));
     Transform transform;
-    transform.SetScale(Vector3(2,1,1));
-    Matrix4x4 point = transform.GetTransform();
+    transform.SetScale(Vector3(1,1,1));
+    transform.SetRotation(Vector3(0.f,0.f,0.f));
+    Matrix4x4 meshPoint = transform.GetMatrix();
+    Matrix4x4 camPoint = camera.GetMatrix();
 
     Mesh mesh = Mesh();
     vector<Triangle> triangle = mesh.GetIndices();
     vector<Vector3> vertices = mesh.GetVertices();
     for(Vector3& vertice:vertices)
     {
-        Vector3 p = point * vertice;
-
-        float x = p.x;
-        float y = p.y;
-        float z = p.z;
-
-        z -= 2; //0,0,0의 뷰포인트에서 메쉬를 그리기위해 메쉬 z값을 추가(openGL 오른손좌표계 -z값이 멀어짐)
+        Vector3 p = camPoint * meshPoint * vertice;
         
-        Vector2 vertex = Vector2(((fovValue * x)/z) + (width/2), ((fovValue * y)/z) + (height/2)); // fov값 설정 및 스크린 중앙으로 그리기
+        float screenX = (p.x * 0.5f + 0.5f) * width;
+        float screenY = (p.y * 0.5f + 0.5f) * height;
+
+        Vector2 vertex = Vector2(screenX, screenY);
         projectionPoints.push_back(vertex);
     }
 }

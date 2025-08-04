@@ -16,7 +16,9 @@ class Mesh
     private:
         vector<Vector3> vertices;
         vector<Triangle> indices;
+        vector<Vector3> normals;
+        vector<Vector2> uvs;
         vector<uint32_t> colors;
         Transform transform;
-        vector<Vector2> projectPoint;
+        vector<Vector2> projectionPoints;
 };

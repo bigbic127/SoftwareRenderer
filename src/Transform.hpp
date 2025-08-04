@@ -8,11 +8,11 @@
 class Transform
 {
     public:
-        void SetPosition(Vector3 pos) {position = pos;}
-        void SetRotation(Vector3 rot) {rotation = rot;}
-        void SetScale(Vector3 s) {scale = s;}
+        void SetPosition(Vector3 pos) {this->position = pos;}
+        void SetRotation(Vector3 rot) {this->rotation = rot;}
+        void SetScale(Vector3 s) {this->scale = s;}
         
-        Matrix4x4 GetTransform(){return Translation() * Rotation() * Scale();}
+        Matrix4x4 GetMatrix(){return Translation() * Rotation() * Scale();}
     private:
         Matrix4x4 Translation()
         {
