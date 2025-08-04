@@ -26,7 +26,7 @@ void Renderer::Ready()
         Quit();
     
     // 메쉬 벌텍스를 2D프로젝션포인트로 변환
-    int fovValue = 20;
+    int fovValue = 200;
     Mesh mesh = Mesh();
     vector<Triangle> triangle = mesh.GetIndices();
     vector<Vector3> vertices = mesh.GetVertices();
@@ -36,8 +36,9 @@ void Renderer::Ready()
         float y = vertice.y;
         float z = vertice.z;
 
-        Vector2 vertex = Vector2(((fovValue * x)/z) + (width/2), ((fovValue * y)/z) + (height/2)); // 스크린 중앙으로 그리기
-
+        z -= 2; //0,0,0의 뷰포인트에서 메쉬를 그리기위해 메쉬 z값을 추가(openGL 오른손좌표계 -z값이 멀어짐)
+        
+        Vector2 vertex = Vector2(((fovValue * x)/z) + (width/2), ((fovValue * y)/z) + (height/2)); // fov값 설정 및 스크린 중앙으로 그리기
         projectionPoints.push_back(vertex);
     }
 }
