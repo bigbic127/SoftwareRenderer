@@ -1,5 +1,6 @@
 #include "Renderer.hpp"
 #include "Mesh.hpp"
+#include "Transform.hpp"
 
 Renderer::Renderer()
 {
@@ -27,14 +28,20 @@ void Renderer::Ready()
     
     // 메쉬 벌텍스를 2D프로젝션포인트로 변환
     int fovValue = 200;
+    Transform transform;
+    transform.SetScale(Vector3(2,1,1));
+    Matrix4x4 point = transform.GetTransform();
+
     Mesh mesh = Mesh();
     vector<Triangle> triangle = mesh.GetIndices();
     vector<Vector3> vertices = mesh.GetVertices();
     for(Vector3& vertice:vertices)
     {
-        float x = vertice.x;
-        float y = vertice.y;
-        float z = vertice.z;
+        Vector3 p = point * vertice;
+
+        float x = p.x;
+        float y = p.y;
+        float z = p.z;
 
         z -= 2; //0,0,0의 뷰포인트에서 메쉬를 그리기위해 메쉬 z값을 추가(openGL 오른손좌표계 -z값이 멀어짐)
         

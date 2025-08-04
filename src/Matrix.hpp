@@ -12,8 +12,9 @@ class Matrix4x4
 
         void Identity()
         {
-            for(int i  = 0; i < 4; ++i)
-                m[i][i] = 1.0f;
+            for (int i = 0; i < 4; ++i)
+                for (int j = 0; j < 4; ++j)
+                    m[i][j] = (i == j) ? 1.0f : 0.0f;
         }
 
         Matrix4x4 operator*(const Matrix4x4& mat) const
