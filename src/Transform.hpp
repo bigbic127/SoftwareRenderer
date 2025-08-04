@@ -8,6 +8,9 @@
 class Transform
 {
     public:
+        Vector3 GetPosition()const{return position;}
+        Vector3 GetRotation()const{return rotation;}
+        Vector3 GetScale()const{return scale;}
         void SetPosition(Vector3 pos) {this->position = pos;}
         void SetRotation(Vector3 rot) {this->rotation = rot;}
         void SetScale(Vector3 s) {this->scale = s;}

@@ -17,7 +17,7 @@ class Renderer : public Window
 
         void ProcessInput(SDL_Event& event) override ;
 
-        void DrawClear(uint32_t color);
+        void DrawClear(uint32_t color = 0xFF000000);
         void DrawGrid(int intervalW = 10, int intervalH = 10, uint32_t color = 0xFF333333);
         void DrawPixel(int x, int y, uint32_t color);
         void DrawRect(int x, int y, int w, int h, uint32_t color);

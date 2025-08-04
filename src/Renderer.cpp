@@ -26,29 +26,6 @@ void Renderer::Ready()
         bIsLooping = true;
     else
         Quit();
-    
-    // 메쉬 벌텍스를 2D프로젝션포인트로 변환
-    Camera camera;
-    camera.SetLookAt(Vector3(0.f,0.f, 5.f), Vector3(0.f,0.f,0.f), Vector3(0.f,1.f,0.f));
-    Transform transform;
-    transform.SetScale(Vector3(1,1,1));
-    transform.SetRotation(Vector3(0.f,0.f,0.f));
-    Matrix4x4 meshPoint = transform.GetMatrix();
-    Matrix4x4 camPoint = camera.GetMatrix();
-
-    Mesh mesh = Mesh();
-    vector<Triangle> triangle = mesh.GetIndices();
-    vector<Vector3> vertices = mesh.GetVertices();
-    for(Vector3& vertice:vertices)
-    {
-        Vector3 p = camPoint * meshPoint * vertice;
-        
-        float screenX = (p.x * 0.5f + 0.5f) * width;
-        float screenY = (p.y * 0.5f + 0.5f) * height;
-
-        Vector2 vertex = Vector2(screenX, screenY);
-        projectionPoints.push_back(vertex);
-    }
 }
 
 void Renderer::Update()
@@ -58,10 +35,45 @@ void Renderer::Update()
     if (timeToWait > 0 && timeToWait <= frameSecond)
         SDL_Delay(timeToWait);
     previousFrameSecond = SDL_GetTicks();
+
+
+    Camera camera;
+    camera.SetLookAt(Vector3(0.f,0.f, 5.f), Vector3(0.f,0.f,0.f), Vector3(0.f,1.f,0.f));
+    camera.SetPerspective(60.f, width/height, 100.f, 0.1f);
+
+    Transform transform;
+    Vector3 rot = transform.GetRotation();
+    rot.z += 0.1f * previousFrameSecond;
+    transform.SetScale(Vector3(1,1,1));
+    transform.SetRotation(Vector3(rot));
+    Matrix4x4 meshPoint = transform.GetMatrix();
+    Matrix4x4 camPoint = camera.GetMatrix();
+
+    Mesh mesh = Mesh();
+    vector<Triangle> triangle = mesh.GetIndices();
+    vector<Vector3> vertices = mesh.GetVertices();
+    projectionPoints.clear();
+
+    for(Vector3& vertice:vertices)
+    {
+        Vector3 p = meshPoint * vertice;
+
+        p.z -= 2;
+        
+        float screenX = ((100.f * p.x)/p.z)  + (width/2);
+        float screenY = ((100.f * p.y)/p.z)  + (height/2);
+
+        //float screenX = (p.x * 0.5f + 0.5f) * width;
+        //float screenY = (p.y * 0.5f + 0.5f) * height;
+
+        Vector2 vertex = Vector2(screenX, screenY);
+        projectionPoints.push_back(vertex);
+    }
 }
 
 void Renderer::Render()
 {
+    DrawClear();
     DrawGrid();
     //DrawPoint(10,10,4,4,0xFFFF0000);
 
@@ -95,6 +107,17 @@ void Renderer::ProcessInput(SDL_Event& event)
         break;
     default:
         break;
+    }
+}
+// 화면 초기화
+void Renderer::DrawClear(uint32_t color)
+{
+    for (int y = 0 ; y < height ; y++)
+    {
+        for (int x = 0 ; x <width ; x++)
+        {
+            colorBuffer[(width * y) + x] = color;
+        }
     }
 }
 // 그리드 그리기
