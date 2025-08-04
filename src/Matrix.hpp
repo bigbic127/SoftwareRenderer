@@ -1,0 +1,48 @@
+#pragma once
+
+#include "Vector.hpp"
+
+class Matrix4x4
+{
+    public:
+        Matrix4x4()
+        {
+            Identity();
+        }
+
+        void Identity()
+        {
+            for(int i  = 0; i < 4; ++i)
+                m[i][i] = 1.0f;
+        }
+
+        Matrix4x4 operator*(const Matrix4x4& mat) const
+        {
+            Matrix4x4 result;
+            for (int row = 0; row < 4; ++row)
+            {
+                for (int col = 0; col <4; ++col)
+                {
+                    for(int k = 0; k < 4; ++k)
+                    {
+                        result.m[row][col] += m[row][k] * mat.m[k][col];
+                    }
+                }
+            }
+            return result;
+        }
+
+        Vector3 operator*(const Vector3& v) const
+        {
+            float x = m[0][0] * v.x + m[0][1] * v.y + m[0][2] * v.z + m[0][3];
+            float y = m[1][0] * v.x + m[1][1] * v.y + m[1][2] * v.z + m[1][3];
+            float z = m[2][0] * v.x + m[2][1] * v.y + m[2][2] * v.z + m[2][3];
+            float w = m[3][0] * v.x + m[3][1] * v.y + m[3][2] * v.z + m[3][3];
+            if (w != 0.0f)
+                return Vector3(x / w, y / w, z / w);
+            return Vector3(x, y, z);
+        }
+
+    public:
+        float m[4][4];
+};
