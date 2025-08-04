@@ -2,6 +2,7 @@
 
 #include <vector>
 #include "Vector.hpp"
+#include "Transform.hpp"
 
 using namespace std;
 
@@ -16,4 +17,6 @@ class Mesh
         vector<Vector3> vertices;
         vector<Triangle> indices;
         vector<uint32_t> colors;
+        Transform transform;
+        vector<Vector2> projectPoint;
 };
