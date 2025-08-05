@@ -31,16 +31,17 @@ class Renderer : public Window
         void DrawRect(int x, int y, int w, int h, uint32_t color);
         void DrawPoint(int x, int y, int w, int h, uint32_t color);
         void DrawLine(Vector2 a, Vector2 b, uint32_t color = 0xFFFFFFFF);
-        void DrawTriangle(Vector2 a, Vector2 b, Vector2 c, uint32_t color = 0xFFFFFFFF);
+        void DrawTriangle(Vector3 a, Vector3 b, Vector3 c, uint32_t color = 0xFFFFFFFF);
         bool IsInsideTriangle(float u, float v, float w);
         void SetRenderMode(RenderMode render) {renderMode = render;}
         RenderMode GetRenderMode() const{return renderMode;}
+        void ClearZBuffer();
     private:
         int FPS = 200;
         float frameSecond = 1000/FPS;
         float previousFrameSecond = 0.0f;
         bool bIsLooping = false;
-        vector<Vector2> projectionPoints;
+        vector<Vector3> projectionPoints;
         vector<Vector3> meshes;
         Mesh mesh;
         Camera camera;

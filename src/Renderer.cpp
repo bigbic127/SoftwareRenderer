@@ -3,12 +3,18 @@
 #include "Transform.hpp"
 #include "Camera.hpp"
 #include "cmath"
+#include <limits>
 
 using namespace std;
 
 Renderer::Renderer()
 {
+    //z버퍼 초기화
     zBuffer = std::make_unique<float[]>(width * height);
+    for (int i = 0; i < (width * height); ++i) {
+        zBuffer[i] = numeric_limits<float>::max();
+    }
+
     Ready();
     Loop();
 }
@@ -55,6 +61,7 @@ void Renderer::Update()
 
 void Renderer::Render()
 {
+    ClearZBuffer();
     DrawClear();
     DrawGrid();
     //DrawPoint(10,10,4,4,0xFFFF0000);
@@ -77,7 +84,8 @@ void Renderer::Render()
         //화면 중앙으로 위치
         float screenX = (p.x * 0.5f + 0.5f) * width;
         float screenY = (1.0f - (p.y * 0.5f + 0.5f)) * height;
-        Vector2 vertex = Vector2(screenX, screenY);
+        float zdepth = p.z * 0.5f + 0.5f;
+        Vector3 vertex = Vector3(screenX, screenY, zdepth);
         projectionPoints.push_back(vertex);
         worldVertices.push_back(p);
     }
@@ -101,9 +109,9 @@ void Renderer::Render()
                 colorIndex += 1;
                 continue;
             }
-            Vector2 v1 = projectionPoints[a];
-            Vector2 v2 = projectionPoints[b];
-            Vector2 v3 = projectionPoints[c];
+            Vector3 v1 = projectionPoints[a];
+            Vector3 v2 = projectionPoints[b];
+            Vector3 v3 = projectionPoints[c];
             DrawTriangle(v1, v2, v3, colors[colorIndex]);
             if (renderMode == RenderMode::FloatData)
             {
@@ -125,17 +133,17 @@ void Renderer::Render()
             int a = tri.a;
             int b = tri.b;
             int c = tri.c;
-            Vector2 v1 = projectionPoints[a];
-            Vector2 v2 = projectionPoints[b];
-            Vector2 v3 = projectionPoints[c]; 
+            Vector3 v1 = projectionPoints[a];
+            Vector3 v2 = projectionPoints[b];
+            Vector3 v3 = projectionPoints[c]; 
             DrawLine(v1.Vector2i(), v2.Vector2i(), 0xFF333333);
             DrawLine(v2.Vector2i(), v3.Vector2i(), 0xFF333333);
             DrawLine(v1.Vector2i(), v3.Vector2i(), 0xFF333333);
         }
         //점 그리기
-        for (Vector2& point:projectionPoints)
+        for (Vector3& point:projectionPoints)
         {
-            Vector2& p = point;
+            Vector3& p = point;
             DrawPoint(p.x, p.y, 4,4,0xFFFF0000);
         }
     }
@@ -255,24 +263,23 @@ void Renderer::DrawLine(Vector2 a, Vector2 b, uint32_t color)
     }
 }
 //삼각형 그리기 Barycentric Algorithm
-void Renderer::DrawTriangle(Vector2 a, Vector2 b, Vector2 c, uint32_t color)
+void Renderer::DrawTriangle(Vector3 a, Vector3 b, Vector3 c, uint32_t color)
 {
     // AABB 범위 계산
     float minX = floor(min({ a.x, b.x, c.x }));
     float maxX = ceil (max({ a.x, b.x, c.x }));
     float minY = floor(min({ a.y, b.y, c.y }));
     float maxY = ceil (max({ a.y, b.y, c.y }));
-    
 
     for (int y = (int)minY; y <= (int)maxY; ++y) {
         for (int x = (int)minX; x <= (int)maxX; ++x) {
 
-            Vector2 p = { (float)x + 0.5f, (float)y + 0.5f }; // 픽셀 중심 좌표
+            Vector2 p = { (float)x + 0.5f, (float)y + 0.5f}; // 픽셀 중심 좌표
 
             // Barycentric 계산
-            Vector2 v0 = b - a;
-            Vector2 v1 = c - a;
-            Vector2 v2 = p - a;
+            Vector2 v0 = Vector2(b.x, b.y) - Vector2(a.x, a.y);
+            Vector2 v1 = Vector2(c.x, c.y) - Vector2(a.x, a.y);
+            Vector2 v2 = p - Vector2(a.x, a.y);
 
             float d00 = v0.Dot(v0);
             float d01 = v0.Dot(v1);
@@ -286,8 +293,11 @@ void Renderer::DrawTriangle(Vector2 a, Vector2 b, Vector2 c, uint32_t color)
             float w = (d00 * d21 - d01 * d20) / denom;
             float u = 1.0f - v - w;
 
-            if (IsInsideTriangle(u, v, w)) {
+            if (IsInsideTriangle(u, v, w))
+            {
                 int index = y * width + x;
+                float z = 0;
+                zBuffer[index] = z;
                 colorBuffer[index] = color;
             }
         }
@@ -297,6 +307,14 @@ void Renderer::DrawTriangle(Vector2 a, Vector2 b, Vector2 c, uint32_t color)
 bool Renderer::IsInsideTriangle(float u, float v, float w)
 {
     return (u >= 0.0f) && (v >= 0.0f) && (w >= 0.0f);
+}
+
+void Renderer::ClearZBuffer()
+{
+    for (int i = 0; i < (width * height); ++i)
+    {
+        zBuffer[i] = numeric_limits<float>::max();
+    }
 }
 
 int main(int arg, char** argv)

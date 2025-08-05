@@ -23,6 +23,6 @@ class Mesh
         vector<Vector2> uvs;
         vector<uint32_t> colors;
         Transform transform;
-        vector<Vector2> projectionPoints;
+        vector<Vector3> projectionPoints;
         vector<Vector3> worldVertices;
 };

@@ -26,7 +26,7 @@ class Vector3
     public:
         Vector3() : x(0), y(0), z(0) {}
         Vector3(float _x, float _y, float _z) : x(_x), y(_y), z(_z) {}
-
+        Vector2 Vector2i() {return Vector2(int(x), int(y));}
         Vector3 operator+(const Vector3& vec) const
         {
             return Vector3(x + vec.x, y + vec.y, z + vec.z);
