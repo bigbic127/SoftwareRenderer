@@ -28,9 +28,9 @@ class Transform
         Matrix4x4 Rotation()
         {
             Matrix4x4 rx, ry, rz;
-            float cp = cosf(DEG2RAD(rotation.y)), sp = sinf(DEG2RAD(rotation.y));
-            float cy = cosf(DEG2RAD(rotation.z)), sy = sinf(DEG2RAD(rotation.z));
-            float cr = cosf(DEG2RAD(rotation.x)), sr = sinf(DEG2RAD(rotation.x));
+            float cp = cosf(DEG2RAD(rotation.x)), sp = sinf(DEG2RAD(rotation.x));
+            float cy = cosf(DEG2RAD(rotation.y)), sy = sinf(DEG2RAD(rotation.y));
+            float cr = cosf(DEG2RAD(rotation.z)), sr = sinf(DEG2RAD(rotation.z));
             // X축 회전 (Pitch)
             rx.m[1][1] = cp;
             rx.m[1][2] = -sp;

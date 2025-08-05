@@ -24,10 +24,12 @@ class Matrix4x4
             {
                 for (int col = 0; col <4; ++col)
                 {
+                    float sum = 0.0f;
                     for(int k = 0; k < 4; ++k)
                     {
-                        result.m[row][col] += m[row][k] * mat.m[k][col];
+                        sum += m[row][k] * mat.m[k][col];
                     }
+                    result.m[row][col] = sum;
                 }
             }
             return result;

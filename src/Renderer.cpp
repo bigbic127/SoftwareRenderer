@@ -28,7 +28,7 @@ void Renderer::Ready()
         Quit();
 
     camera.SetLookAt(Vector3(0.f,0.f, 5.f), Vector3(0.f,0.f,0.f), Vector3(0.f,1.f,0.f));
-    camera.SetPerspective(60.f, width/height, 100.f, 0.1f);
+    camera.SetPerspective(60.f, float(width)/height, 0.1f, 100.f);
 
     mesh = Mesh();
     vector<Triangle> triangle = mesh.GetIndices();
@@ -36,8 +36,6 @@ void Renderer::Ready()
 
     Transform transform = mesh.GetTransform();
     Vector3 rot = transform.GetRotation();
-    rot.z += 0.1f * previousFrameSecond;
-    transform.SetScale(Vector3(2,1,1));
     Matrix4x4 meshPoint = transform.GetMatrix();
     Matrix4x4 camPoint = camera.GetMatrix();
 
@@ -70,15 +68,15 @@ void Renderer::Update()
         SDL_Delay(timeToWait);
     previousFrameSecond = SDL_GetTicks();
 
+    camera.SetPerspective(45.f, float(width)/height, 0.1f, 100.f);
 
     vector<Triangle> triangle = mesh.GetIndices();
     vector<Vector3> vertices = mesh.GetVertices();
 
     Transform transform = mesh.GetTransform();
     Vector3 rot = transform.GetRotation();
-    rot.z += 0.1f * previousFrameSecond;
+    rot.y += 0.1f * previousFrameSecond;
     transform.SetRotation(rot);
-    transform.SetScale(Vector3(1,1,1));
     Matrix4x4 meshPoint = transform.GetMatrix();
     Matrix4x4 camPoint = camera.GetMatrix();
 
@@ -86,15 +84,17 @@ void Renderer::Update()
 
     for(Vector3& vertice:vertices)
     {
-        Vector3 p = camPoint * meshPoint * vertice;
+        Vector3 p = meshPoint * vertice;
 
-        //p.z -= 2;
+
+
+        p.z -= 2;
         
-        //float screenX = ((100.f * p.x)/p.z)  + (width/2);
-        //float screenY = ((100.f * p.y)/p.z)  + (height/2);
+        float screenX = ((200.f * p.x)/p.z)  + (width/2);
+        float screenY = ((200.f * p.y)/p.z)  + (height/2);
 
-        float screenX = (p.x * 0.5f + 0.5f) * width;
-        float screenY = (p.y * 0.5f + 0.5f) * height;
+        //float screenX = (p.x * 0.5f + 0.5f) * width;
+        //float screenY = (1.0f - (p.y * 0.5f + 0.5f)) * height;
 
         Vector2 vertex = Vector2(screenX, screenY);
         projectionPoints.push_back(vertex);

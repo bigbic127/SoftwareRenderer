@@ -39,10 +39,6 @@ class Camera
             view.m[2][1] = -f.y;
             view.m[2][2] = -f.z;
             view.m[2][3] = f.Dot(eye);
-            view.m[3][0] = 0.0f;
-            view.m[3][1] = 0.0f;
-            view.m[3][2] = 0.0f;
-            view.m[3][3] = 1.0f;
             return view;
         }
     
@@ -64,9 +60,7 @@ class Camera
             Vector3 target;
             Vector3 up = Vector3(0.0f, 1.0f, 0.0f);
             float fov = 60.f;
-            float aspect = 1280.0f/720.0f;
+            float aspect = 1.0f;
             float near = 0.1f;
             float far = 100.f;
-
-
 };
