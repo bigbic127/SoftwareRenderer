@@ -7,9 +7,19 @@ class Vector2
     public:
         Vector2() : x(0), y(0){}
         Vector2(float _x, float _y) : x(_x), y(_y){}
+        Vector2 Vector2i() {return Vector2(int(x), int(y));}
+        Vector2 operator-(const Vector2& vec) const
+        {
+            return Vector2(x - vec.x, y - vec.y);
+        }
+        float Dot(const Vector2& vec) const
+        {
+            return x * vec.x + y * vec.y;
+        }
     public:
         float x, y;
 };
+
 
 class Vector3
 {

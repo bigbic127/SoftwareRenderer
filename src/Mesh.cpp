@@ -1,8 +1,7 @@
 #include "Mesh.hpp"
 
-Mesh::Mesh()
+void Mesh::Cube()
 {
-    // 박스 생성
     vertices = {
         {-1, 1, -1},
         {1, 1, -1},
@@ -13,7 +12,6 @@ Mesh::Mesh()
         {-1, 1, 1},
         {-1, -1, 1}
     };
-    
     indices = {
         //삼각형 그리기 시계방향으로 vertices 인텍스 번호
         {3, 0, 1},
@@ -29,7 +27,6 @@ Mesh::Mesh()
         {5, 4, 6},
         {5, 6, 7}
     };
-    // 박스 면 색상
     colors = {
         0xFFFF0000,
         0xFFFF0000,

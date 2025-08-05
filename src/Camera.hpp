@@ -19,7 +19,7 @@ class Camera
             this->far = _far;
         }
         Matrix4x4 GetMatrix() {return Perspective() * LookAt();}
-
+        Vector3 GetPosition() const {return eye;}
     private:
         Matrix4x4 LookAt()
         {
