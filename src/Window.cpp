@@ -1,6 +1,5 @@
 #include "Window.hpp"
 #include <limits>
-#include <cmath>
 
 using namespace std;
 
@@ -76,7 +75,10 @@ void Window::ResizeBuffers(int w, int h)
     width = w;
     height = h;
     colorBuffer = std::make_unique<uint32_t[]>(width * height);
-    
+    zBuffer = std::make_unique<float[]>(width * height);
+    for (int i = 0; i < (width * height); ++i)
+        zBuffer[i] = numeric_limits<float>::max();
+
     if (colorBufferTexture) {
         SDL_DestroyTexture(colorBufferTexture);
     }

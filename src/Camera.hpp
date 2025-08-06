@@ -1,6 +1,10 @@
 #pragma once
 
 #include "Matrix.hpp"
+#include "Vector.hpp"
+#include <vector>
+
+using namespace std;
 
 class Camera
 {
@@ -20,6 +24,7 @@ class Camera
         }
         Matrix4x4 GetMatrix() {return Perspective() * LookAt();}
         Vector3 GetPosition() const {return eye;}
+        vector<Vector4> GetFrustumPlanes(const Matrix4x4& m) {return ExtractFrustumPlanes(m);}
     private:
         Matrix4x4 LookAt()
         {
@@ -41,7 +46,6 @@ class Camera
             view.m[2][3] = f.Dot(eye);
             return view;
         }
-    
         Matrix4x4 Perspective()
         {
             float f = 1.0f / tan(fov * 0.5f);
@@ -55,6 +59,18 @@ class Camera
             mat.m[3][3] = 0.0f;
             return mat;
         }
+        //절두체 6면
+        vector<Vector4> ExtractFrustumPlanes(const Matrix4x4& m)
+        {
+            planes.clear();
+            planes.push_back((m.GetRow(3) + m.GetRow(0)).Normalized()); // Left
+            planes.push_back((m.GetRow(3) - m.GetRow(0)).Normalized()); // Right
+            planes.push_back((m.GetRow(3) + m.GetRow(1)).Normalized()); // Bottom
+            planes.push_back((m.GetRow(3) - m.GetRow(1)).Normalized()); // Top
+            planes.push_back((m.GetRow(3) + m.GetRow(2)).Normalized()); // Near
+            planes.push_back((m.GetRow(3) - m.GetRow(2)).Normalized()); // Far
+            return planes;
+        }
         private:
             Vector3 eye;
             Vector3 target;
@@ -63,4 +79,5 @@ class Camera
             float aspect = 1.0f;
             float near = 0.1f;
             float far = 100.f;
+            vector<Vector4> planes;
 };

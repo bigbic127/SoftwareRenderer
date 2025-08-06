@@ -12,7 +12,7 @@
 
 using namespace std;
 
-void LoadObjFile(const string& path, vector<Vector3D>& vertices, vector<Triangle>& indices)//, vector<Vector2D>& uvs, vector<Vector3D>& normals)
+static void LoadObjFile(const string& path, vector<Vector3D>& vertices, vector<Triangle>& indices)//, vector<Vector2D>& uvs, vector<Vector3D>& normals)
 {
     ifstream file(path);
     if (!file.is_open())

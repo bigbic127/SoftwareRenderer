@@ -16,6 +16,7 @@ class Mesh
         Transform& GetTransform() {return transform;}
         vector<Vector3>& GetWorldVertices() {return worldVertices;}
         void Cube();
+        void Sphere(int stacks = 32, int slices = 32, float radius = 1.0f);
     private:
         vector<Vector3> vertices;
         vector<Triangle> indices;

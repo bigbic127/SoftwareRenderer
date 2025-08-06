@@ -31,7 +31,7 @@ void Renderer::Ready()
         Quit();
 
     mesh = Mesh();
-
+    mesh.Sphere();
 }
 
 void Renderer::Update()
@@ -72,7 +72,9 @@ void Renderer::Render()
     for(Vector3& vertice:vertices)
     {
         //행렬 변환 (world * view * projection) -> clip -> NDC(-1 ~ 1 정규화)
-        Vector3 p = camPoint * meshPoint * vertice;
+        Vector4 vec4 = Vector4(vertice.x, vertice.y, vertice.z, 1.0f);//Vector4로 변환
+        Vector4 v = camPoint * meshPoint * vec4;//프로젝션행렬까지 변환
+        Vector3 p = Vector3(v.x/v.w , v.y/v.w, v.z/v.w);//NDC 좌표계로 변환
         //화면 중앙으로 위치
         float screenX = (p.x * 0.5f + 0.5f) * width;
         float screenY = (1.0f - (p.y * 0.5f + 0.5f)) * height;
@@ -104,7 +106,15 @@ void Renderer::Render()
             Vector3 v1 = projectionPoints[a];
             Vector3 v2 = projectionPoints[b];
             Vector3 v3 = projectionPoints[c];
-            DrawTriangle(v1, v2, v3, colors[colorIndex]);
+            //광원 및 색상
+            Vector3 lightPos = Vector3(0, 5, 0);//라이트 위치 또 행렬변환 필요
+            Vector3 triCenter = (_a + _b + _c) / 3.0f;
+            Vector3 lightDir =(lightPos - triCenter).Normalized();
+            float brightness = max(0.0f, normal.Dot(lightDir));//밝기 계산
+            brightness *= 2.2f;
+            int gray = static_cast<int>(brightness * 255.0f);
+            uint32_t color = 0xFF000000 | (gray << 16) | (gray << 8) | gray;// ARGB  각uint8
+            DrawTriangle(v1, v2, v3, color);
             if (renderMode == RenderMode::FloatData)
             {
                 DrawLine(v1.Vector2i(), v2.Vector2i(), 0xFF333333);
@@ -168,6 +178,8 @@ void Renderer::ProcessInput(SDL_Event& event)
         break;
     case SDL_MOUSEBUTTONDOWN:
         break;
+    case SDL_MOUSEWHEEL:
+        break;
     default:
         break;
     }
@@ -180,11 +192,9 @@ void Renderer::DrawClear(uint32_t color)
         for (int x = 0 ; x <width ; x++)
         {
             colorBuffer[(width * y) + x] = color;
+            zBuffer[(width * y) + x] = numeric_limits<float>::max(); //z버퍼 초기화
         }
     }
-    //Z버퍼 초기화
-    for (int i = 0; i < (width * height); ++i)
-        zBuffer[i] = numeric_limits<float>::max();
 }
 // 그리드 그리기
 void Renderer::DrawGrid(int intervalW, int intervalH, uint32_t color)
@@ -292,7 +302,7 @@ void Renderer::DrawTriangle(Vector3 a, Vector3 b, Vector3 c, uint32_t color)
                 if (z < zBuffer[index])
                 {
                     zBuffer[index] = z;
-                    colorBuffer[index] = ColorToOx(z);
+                    colorBuffer[index] = color;
                 }
             }
         }

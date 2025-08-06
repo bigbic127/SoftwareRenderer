@@ -20,13 +20,12 @@ class Vector2
         float x, y;
 };
 
-
 class Vector3
 {
     public:
         Vector3() : x(0), y(0), z(0) {}
         Vector3(float _x, float _y, float _z) : x(_x), y(_y), z(_z) {}
-        Vector2 Vector2i() {return Vector2(int(x), int(y));}
+        Vector2 Vector2i() const{return Vector2(int(x), int(y));}
         Vector3 operator+(const Vector3& vec) const
         {
             return Vector3(x + vec.x, y + vec.y, z + vec.z);
@@ -74,6 +73,28 @@ class Vector4
     public:
         Vector4() : x(0), y(0), z(0), w(1){}
         Vector4(float _x, float _y, float _z, float _w) : x(_x), y(_y), z(_z), w(_w){}
+        Vector4 operator+(const Vector4& vec) const
+        {
+            return Vector4(x + vec.x, y + vec.y, z + vec.z, w + vec.w);
+        }
+        Vector4 operator-(const Vector4& vec) const
+        {
+            return Vector4(x - vec.x, y - vec.y, z - vec.z, w - vec.w);
+        }
+        Vector4 operator/(float scalar) const
+        {
+            return Vector4(x / scalar, y / scalar, z / scalar, w / scalar);
+        }
+        float Length() const
+        {
+            return std::sqrt(x*x + y*y + z*z);
+        }
+        Vector4 Normalized() const
+        {
+            float len = Length();
+            if (len == 0) return Vector4(0,0,0,0);
+            return (*this) / len;
+        }
     public:
         float x, y, z, w;
 };

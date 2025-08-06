@@ -43,7 +43,7 @@ class Renderer : public Window
         float previousFrameSecond = 0.0f;
         bool bIsLooping = false;
         vector<Vector3> projectionPoints;
-        vector<Vector3> meshes;
+        vector<Mesh> meshes;
         Mesh mesh;
         Camera camera;
         RenderMode renderMode = RenderMode::Wireframe;

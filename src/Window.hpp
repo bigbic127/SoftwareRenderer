@@ -3,6 +3,7 @@
 #include <SDL.h>
 #include <memory>
 #include <tuple>
+#include "Input.hpp"
 
 class Window
 {

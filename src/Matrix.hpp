@@ -54,6 +54,10 @@ class Matrix4x4
             float w = m[3][0] * v.x + m[3][1] * v.y + m[3][2] * v.z + m[3][3] * v.w;
             return Vector4(x, y, z, w);
         }
+        Vector4 GetRow(int row) const
+        {
+            return Vector4(m[row][0], m[row][1], m[row][2], m[row][3]);
+        }
     public:
         float m[4][4];
 };
