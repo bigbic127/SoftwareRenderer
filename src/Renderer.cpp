@@ -32,8 +32,10 @@ void Renderer::Ready()
         Quit();
     mesh = Mesh();
     mesh.Sphere();
-    LoadObjFile("../obj/teapot.obj", mesh.GetVertices(), mesh.GetIndices());
+    LoadObjFile("../obj/bunny.obj", mesh.GetVertices(), mesh.GetIndices());
     mesh.GetTransform().SetScale(Vector3(0.7,0.7,0.7));
+    mesh.GetTransform().SetScale(Vector3(10,10,10));
+
     mesh.GetTransform().SetPosition(Vector3(0,-1,0));
 
 }
@@ -46,7 +48,7 @@ void Renderer::Update()
         SDL_Delay(timeToWait);
     previousFrameSecond = SDL_GetTicks();
     //카메라 파마리터 변경
-    camera.SetLookAt(Vector3(0.f,4.f, 4.f), Vector3(0.f,0.f,0.f), Vector3(0.f,1.f,0.f));
+    camera.SetLookAt(Vector3(0.f,0.5f, 4.f), Vector3(0.f,0.f,0.f), Vector3(0.f,1.f,0.f));
     camera.SetPerspective(70.f, float(width)/height, 0.1f, 100.f);
     //Mesh Transform 처리
     Transform& transform = mesh.GetTransform();
