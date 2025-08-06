@@ -2,6 +2,7 @@
 #include "Mesh.hpp"
 #include "Transform.hpp"
 #include "Camera.hpp"
+#include "File.hpp"
 #include <cmath>
 
 using namespace std;
@@ -29,9 +30,12 @@ void Renderer::Ready()
         bIsLooping = true;
     else
         Quit();
-
     mesh = Mesh();
     mesh.Sphere();
+    LoadObjFile("../obj/teapot.obj", mesh.GetVertices(), mesh.GetIndices());
+    mesh.GetTransform().SetScale(Vector3(0.7,0.7,0.7));
+    mesh.GetTransform().SetPosition(Vector3(0,-1,0));
+
 }
 
 void Renderer::Update()
@@ -41,7 +45,6 @@ void Renderer::Update()
     if (timeToWait > 0 && timeToWait <= frameSecond)
         SDL_Delay(timeToWait);
     previousFrameSecond = SDL_GetTicks();
-
     //카메라 파마리터 변경
     camera.SetLookAt(Vector3(0.f,4.f, 4.f), Vector3(0.f,0.f,0.f), Vector3(0.f,1.f,0.f));
     camera.SetPerspective(70.f, float(width)/height, 0.1f, 100.f);
@@ -64,16 +67,14 @@ void Renderer::Render()
     vector<uint32_t> colors = mesh.GetColors();
     Vector3 cameraPosition = camera.GetPosition();
     //뷰행렬로 변환
-    Transform transform = mesh.GetTransform();
-    Matrix4x4 meshPoint = transform.GetMatrix();
-    Matrix4x4 camPoint = camera.GetMatrix();
     projectionPoints.clear();
     worldVertices.clear();
     for(Vector3& vertice:vertices)
     {
         //행렬 변환 (world * view * projection) -> clip -> NDC(-1 ~ 1 정규화)
         Vector4 vec4 = Vector4(vertice.x, vertice.y, vertice.z, 1.0f);//Vector4로 변환
-        Vector4 v = camPoint * meshPoint * vec4;//프로젝션행렬까지 변환
+        Vector4 v = camera.GetProjectionMatrix() * mesh.GetTransform().GetMatrix() * vec4;//프로젝션행렬까지 변환
+        Vector4 w = mesh.GetTransform().GetMatrix() * vec4;//뷰행렬까지 변환 라이팅계산
         Vector3 p = Vector3(v.x/v.w , v.y/v.w, v.z/v.w);//NDC 좌표계로 변환
         //화면 중앙으로 위치
         float screenX = (p.x * 0.5f + 0.5f) * width;
@@ -81,7 +82,7 @@ void Renderer::Render()
         float zdepth = p.z * 0.5f + 0.5f;
         Vector3 vertex = Vector3(screenX, screenY, zdepth);
         projectionPoints.push_back(vertex);
-        worldVertices.push_back(p);
+        worldVertices.push_back(Vector3(w.x , w.y, w.z));
     }
     //픽셀그리기
     if (renderMode == RenderMode::Solid || renderMode == RenderMode::FloatData || renderMode == RenderMode::Shader)
@@ -93,27 +94,27 @@ void Renderer::Render()
             int a = tri.a;
             int b = tri.b;
             int c = tri.c;
+            Vector3 v1 = projectionPoints[a];
+            Vector3 v2 = projectionPoints[b];
+            Vector3 v3 = projectionPoints[c];
             //backface culling 계산
             Vector3 _a = worldVertices[a];
             Vector3 _b = worldVertices[b];
             Vector3 _c = worldVertices[c];
-            Vector3 normal = ((_c-_a).Cross(_b-_a)).Normalized();
-            if (normal.Dot(cameraPosition) >= 0)
+            Vector3 triCenter = (_a + _b + _c) / 3.0f;
+            Vector3 cameraDir = (triCenter - cameraPosition).Normalized();
+            Vector3 normal = ((_b-_a).Cross(_c-_a)).Normalized();
+            if (normal.Dot(cameraDir) >= 0)
             {
                 colorIndex += 1;
                 continue;
             }
-            Vector3 v1 = projectionPoints[a];
-            Vector3 v2 = projectionPoints[b];
-            Vector3 v3 = projectionPoints[c];
             //광원 및 색상
-            Vector3 lightPos = Vector3(0, 5, 0);//라이트 위치 또 행렬변환 필요
-            Vector3 triCenter = (_a + _b + _c) / 3.0f;
-            Vector3 lightDir =(lightPos - triCenter).Normalized();
-            float brightness = max(0.0f, normal.Dot(lightDir));//밝기 계산
-            brightness *= 2.2f;
+            float brightness = max(0.0f, normal.Dot(cameraDir * -1));
+            brightness *= 1.0f;
             int gray = static_cast<int>(brightness * 255.0f);
             uint32_t color = 0xFF000000 | (gray << 16) | (gray << 8) | gray;// ARGB  각uint8
+            //면 그리기
             DrawTriangle(v1, v2, v3, color);
             if (renderMode == RenderMode::FloatData)
             {
@@ -302,6 +303,7 @@ void Renderer::DrawTriangle(Vector3 a, Vector3 b, Vector3 c, uint32_t color)
                 if (z < zBuffer[index])
                 {
                     zBuffer[index] = z;
+                    //DrawPoint(x, y, 5, 5, color);
                     colorBuffer[index] = color;
                 }
             }

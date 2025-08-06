@@ -12,7 +12,7 @@
 
 using namespace std;
 
-static void LoadObjFile(const string& path, vector<Vector3D>& vertices, vector<Triangle>& indices)//, vector<Vector2D>& uvs, vector<Vector3D>& normals)
+static void LoadObjFile(const string& path, vector<Vector3>& vertices, vector<Triangle>& indices)//, vector<Vector2D>& uvs, vector<Vector3D>& normals)
 {
     ifstream file(path);
     if (!file.is_open())
@@ -20,7 +20,8 @@ static void LoadObjFile(const string& path, vector<Vector3D>& vertices, vector<T
         SDL_Log("Faild to open file. path:%s\n", path.c_str());
         return;
     }
-
+    vertices.clear();
+    indices.clear();
     string line;
     while(getline(file, line))
     {
@@ -30,7 +31,7 @@ static void LoadObjFile(const string& path, vector<Vector3D>& vertices, vector<T
         iss >> prefix;
         if (prefix == "v")
         {
-            Vector3D v;
+            Vector3 v;
             iss >> v.x >> v.y >> v.z;
             vertices.push_back(v);
         }
@@ -42,10 +43,10 @@ static void LoadObjFile(const string& path, vector<Vector3D>& vertices, vector<T
                 
             }else
             {
-                iss >> f.x >> f.y >> f.z;
-                f.x -=1;
-                f.y -=1;
-                f.z -=1;
+                iss >> f.a >> f.b >> f.c;
+                f.a -=1;
+                f.b -=1;
+                f.c -=1;
                 indices.push_back(f);
             }
         }

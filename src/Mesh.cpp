@@ -5,56 +5,38 @@ void Mesh::Cube()
     vertices.clear();
     indices.clear();
     colors.clear();
-    vertices = {
-        {-1, 1, -1},
-        {1, 1, -1},
-        {1, -1, -1},
-        {-1, -1, -1},
-        {1, 1, 1},
-        {1, -1, 1},
-        {-1, 1, 1},
-        {-1, -1, 1}
+    vertices =
+    {
+        {-1,  1, -1}, // 0 - 왼쪽 위 앞
+        { 1,  1, -1}, // 1 - 오른쪽 위 앞
+        { 1, -1, -1}, // 2 - 오른쪽 아래 앞
+        {-1, -1, -1}, // 3 - 왼쪽 아래 앞
+        {-1,  1,  1}, // 4 - 왼쪽 위 뒤
+        { 1,  1,  1}, // 5 - 오른쪽 위 뒤
+        { 1, -1,  1}, // 6 - 오른쪽 아래 뒤
+        {-1, -1,  1}  // 7 - 왼쪽 아래 뒤
     };
-    /*Z버퍼 테스트
-    vertices = {
-    { -1, -1, -1 },
-    { 1, -1, -1 },
-    { 1,  1, -1 },
-    { -1,  1, -1 },
-    { -1, -1,  1 },
-    { 1, -1,  1 },
-    { 1,  1,  1 },
-    { -1,  1,  1 }
-    };
-    */
-    indices = {
-        //삼각형 그리기 시계방향으로 vertices 인텍스 번호
-        {3, 0, 1},
-        {3, 1, 2},
-        {2, 1, 4},
-        {2, 4, 5},
-        {7, 6, 0},
-        {7, 0, 3},
-        {0, 6, 4},
-        {0, 4, 1},
-        {7, 3, 2},
-        {7, 2, 5},
-        {5, 4, 6},
-        {5, 6, 7}
-    };
-    colors = {
-        0xFFFF0000,
-        0xFFFF0000,
-        0xFF00FF00,
-        0xFF00FF00,
-        0xFF0000FF,
-        0xFF0000FF,
-        0xFFFFFF00,
-        0xFFFFFF00,
-        0xFFFF00FF,
-        0xFFFF00FF,
-        0xFF00FFFF,
-        0xFF00FFFF
+
+    indices =
+    {
+        // 앞면
+        {0, 2, 3},
+        {0, 1, 2},
+        // 뒷면
+        {4, 6, 5},
+        {4, 7, 6},
+        // 왼쪽면
+        {0, 7, 4},
+        {0, 3, 7},
+        // 오른쪽면
+        {1, 6, 2},
+        {1, 5, 6},
+        // 윗면
+        {0, 5, 1},
+        {0, 4, 5},
+        // 아랫면
+        {3, 6, 7},
+        {3, 2, 6}
     };
 }
 
@@ -62,29 +44,32 @@ void Mesh::Sphere(int stacks, int slices, float radius)
 {
     vertices.clear();
     indices.clear();
+    normals.clear();
     colors.clear();
-    for (int i = 0; i <= stacks; ++i)
-    {
-        float v = float(i) / stacks;
-        float theta = v * 3.14159;
-        for (int j = 0; j <= slices; ++j)
+    constexpr float PI = 3.14159265359f;
+    for (int lat = 0; lat <= stacks; ++lat) {
+        float theta = lat * PI / stacks;
+        float sinTheta = sin(theta);
+        float cosTheta = cos(theta);
+        for (int lon = 0; lon <= slices; ++lon)
         {
-            float u = float(j) / slices;
-            float phi = u * 2 * 3.14159;
-            float x = radius * sinf(theta) * cosf(phi);
-            float y = radius * cosf(theta);
-            float z = radius * sinf(theta) * sinf(phi);
+            float phi = lon * 2.0f * PI / slices;
+            float sinPhi = sin(phi);
+            float cosPhi = cos(phi);
+            float x = radius * sinTheta * cosPhi;
+            float y = radius * cosTheta;
+            float z = radius * sinTheta * sinPhi;
             vertices.push_back(Vector3(x, y, z));
+            normals.push_back(Vector3(x, y, z).Normalized());
         }
     }
-    for (int i = 0; i < stacks; ++i)
+    for (int lat = 0; lat < stacks; ++lat)
     {
-        for (int j = 0; j < slices; ++j)
-        {
-            int first  = i * (slices + 1) + j;
-            int second = first + slices + 1;
-            indices.push_back(Triangle(first + 1, second, first));
-            indices.push_back(Triangle(first + 1, second + 1, second));
+        for (int lon = 0; lon < slices; ++lon) {
+            int current = lat * (slices + 1) + lon;
+            int next = current + slices + 1;
+            indices.push_back(Triangle(current, current + 1, next));
+            indices.push_back(Triangle(current + 1, next + 1, next));
         }
     }
 }

@@ -22,7 +22,9 @@ class Camera
             this->near = _near;
             this->far = _far;
         }
-        Matrix4x4 GetMatrix() {return Perspective() * LookAt();}
+        Matrix4x4 GetProjectionMatrix() {return Perspective() * LookAt();}
+        Matrix4x4 GetViewMatrix() {return LookAt();}
+        Vector3 GetDirection() {return (target - eye).Normalized();}
         Vector3 GetPosition() const {return eye;}
         vector<Vector4> GetFrustumPlanes(const Matrix4x4& m) {return ExtractFrustumPlanes(m);}
     private:

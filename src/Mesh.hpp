@@ -12,6 +12,8 @@ class Mesh
         Mesh() {Cube();}
         vector<Vector3>& GetVertices() {return vertices;}
         vector<Triangle>& GetIndices() {return indices;}
+        vector<Vector3>& GetNormals() {return normals;}
+        vector<Vector2>& GetUVs() {return uvs;}
         vector<uint32_t>& GetColors() {return colors;}
         Transform& GetTransform() {return transform;}
         vector<Vector3>& GetWorldVertices() {return worldVertices;}

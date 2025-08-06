@@ -40,9 +40,6 @@ class Matrix4x4
             float x = m[0][0] * v.x + m[0][1] * v.y + m[0][2] * v.z + m[0][3];
             float y = m[1][0] * v.x + m[1][1] * v.y + m[1][2] * v.z + m[1][3];
             float z = m[2][0] * v.x + m[2][1] * v.y + m[2][2] * v.z + m[2][3];
-            float w = m[3][0] * v.x + m[3][1] * v.y + m[3][2] * v.z + m[3][3];
-            if (w != 0.0f)
-                return Vector3(x / w, y / w, z / w);
             return Vector3(x, y, z);
         }
 
