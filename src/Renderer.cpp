@@ -265,11 +265,10 @@ void Renderer::DrawTriangle(Vector3 a, Vector3 b, Vector3 c, uint32_t color)
     Vector2 p1 = { b.x, b.y };
     Vector2 p2 = { c.x, c.y };
     //AABB 범위 계산
-    float minX = std::max(0.0f, std::floor(std::min({ p0.x, p1.x, p2.x })));
-    float maxX = std::min((float)width - 1, std::ceil(std::max({ p0.x, p1.x, p2.x })));
-    float minY = std::max(0.0f, std::floor(std::min({ p0.y, p1.y, p2.y })));
-    float maxY = std::min((float)height - 1, std::ceil(std::max({ p0.y, p1.y, p2.y })));
-
+    float minX = max(0.0f, floor(min({ p0.x, p1.x, p2.x })));
+    float maxX = min((float)width - 1, ceil(max({ p0.x, p1.x, p2.x })));
+    float minY = max(0.0f, floor(min({ p0.y, p1.y, p2.y })));
+    float maxY = min((float)height - 1, ceil(max({ p0.y, p1.y, p2.y })));
     float area = EdgeFunction(p0, p1, p2);
     if (area == 0.0f)
         return; //삼각형이 아니면 그리지 않음

@@ -36,7 +36,7 @@ class Renderer : public Window
         void SetRenderMode(RenderMode render) {renderMode = render;}
         RenderMode GetRenderMode() const{return renderMode;}
     protected:
-        uint32_t DepthToColorGradient(float z);
+        uint32_t ColorToOx(float z);
     private:
         int FPS = 200;
         float frameSecond = 1000/FPS;
