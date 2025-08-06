@@ -1,9 +1,17 @@
 #include "Window.hpp"
+#include <limits>
+#include <cmath>
+
+using namespace std;
 
 Window::Window(int w, int h):width(w), height(h)
 {
     //컬러버퍼 생성 - 스마트 포인터로 메모리 관리
     colorBuffer = std::make_unique<uint32_t[]>(width * height);
+    //z버퍼 생성 및 초기화
+    zBuffer = std::make_unique<float[]>(width * height);
+    for (int i = 0; i < (width * height); ++i)
+        zBuffer[i] = numeric_limits<float>::max();
 }
 
 //윈도우 초기화

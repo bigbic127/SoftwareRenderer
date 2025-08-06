@@ -19,6 +19,7 @@ protected:
     SDL_Renderer* renderer = nullptr;
     SDL_Texture* colorBufferTexture = nullptr;
     std::unique_ptr<uint32_t[]> colorBuffer;
+    std::unique_ptr<float[]> zBuffer;
     SDL_Event event;
     int width;
     int height;

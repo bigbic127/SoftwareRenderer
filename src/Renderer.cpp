@@ -2,19 +2,12 @@
 #include "Mesh.hpp"
 #include "Transform.hpp"
 #include "Camera.hpp"
-#include "cmath"
-#include <limits>
+#include <cmath>
 
 using namespace std;
 
 Renderer::Renderer()
 {
-    //z버퍼 초기화
-    zBuffer = std::make_unique<float[]>(width * height);
-    for (int i = 0; i < (width * height); ++i) {
-        zBuffer[i] = numeric_limits<float>::max();
-    }
-
     Ready();
     Loop();
 }
@@ -61,7 +54,6 @@ void Renderer::Update()
 
 void Renderer::Render()
 {
-    ClearZBuffer();
     DrawClear();
     DrawGrid();
     //DrawPoint(10,10,4,4,0xFFFF0000);
@@ -190,6 +182,9 @@ void Renderer::DrawClear(uint32_t color)
             colorBuffer[(width * y) + x] = color;
         }
     }
+    //Z버퍼 초기화
+    for (int i = 0; i < (width * height); ++i)
+        zBuffer[i] = numeric_limits<float>::max();
 }
 // 그리드 그리기
 void Renderer::DrawGrid(int intervalW, int intervalH, uint32_t color)
@@ -265,56 +260,61 @@ void Renderer::DrawLine(Vector2 a, Vector2 b, uint32_t color)
 //삼각형 그리기 Barycentric Algorithm
 void Renderer::DrawTriangle(Vector3 a, Vector3 b, Vector3 c, uint32_t color)
 {
-    // AABB 범위 계산
-    float minX = floor(min({ a.x, b.x, c.x }));
-    float maxX = ceil (max({ a.x, b.x, c.x }));
-    float minY = floor(min({ a.y, b.y, c.y }));
-    float maxY = ceil (max({ a.y, b.y, c.y }));
+    //2D좌표로 변환
+    Vector2 p0 = { a.x, a.y };
+    Vector2 p1 = { b.x, b.y };
+    Vector2 p2 = { c.x, c.y };
+    //AABB 범위 계산
+    float minX = std::max(0.0f, std::floor(std::min({ p0.x, p1.x, p2.x })));
+    float maxX = std::min((float)width - 1, std::ceil(std::max({ p0.x, p1.x, p2.x })));
+    float minY = std::max(0.0f, std::floor(std::min({ p0.y, p1.y, p2.y })));
+    float maxY = std::min((float)height - 1, std::ceil(std::max({ p0.y, p1.y, p2.y })));
+
+    float area = EdgeFunction(p0, p1, p2);
+    if (area == 0.0f)
+        return; //삼각형이 아니면 그리지 않음
 
     for (int y = (int)minY; y <= (int)maxY; ++y) {
         for (int x = (int)minX; x <= (int)maxX; ++x) {
 
-            Vector2 p = { (float)x + 0.5f, (float)y + 0.5f}; // 픽셀 중심 좌표
+            Vector2 p = {x + 0.5f, y + 0.5f}; //픽셀 중심 좌표
 
-            // Barycentric 계산
-            Vector2 v0 = Vector2(b.x, b.y) - Vector2(a.x, a.y);
-            Vector2 v1 = Vector2(c.x, c.y) - Vector2(a.x, a.y);
-            Vector2 v2 = p - Vector2(a.x, a.y);
-
-            float d00 = v0.Dot(v0);
-            float d01 = v0.Dot(v1);
-            float d11 = v1.Dot(v1);
-            float d20 = v2.Dot(v0);
-            float d21 = v2.Dot(v1);
-
-            float denom = d00 * d11 - d01 * d01;
-
-            float v = (d11 * d20 - d01 * d21) / denom;
-            float w = (d00 * d21 - d01 * d20) / denom;
-            float u = 1.0f - v - w;
-
-            if (IsInsideTriangle(u, v, w))
+            float w0 = EdgeFunction(p1, p2, p);
+            float w1 = EdgeFunction(p2, p0, p);
+            float w2 = EdgeFunction(p0, p1, p);
+            //픽셀이 삼각형 내부에 있는지 확인 (모든 barycentric 계수가 양수이면 내부)
+            if (w0 >= 0 && w1 >= 0 && w2 >= 0)
             {
+                w0 /= area;
+                w1 /= area;
+                w2 /= area;
+                float z = a.z * w0 + b.z * w1 + c.z * w2;// Barycentric interpolation (Z값 보간)
                 int index = y * width + x;
-                float z = 0;
-                zBuffer[index] = z;
-                colorBuffer[index] = color;
+                if (z < zBuffer[index])
+                {
+                    zBuffer[index] = z;
+                    colorBuffer[index] = ColorToOx(z);
+                }
             }
         }
     }
 }
 
-bool Renderer::IsInsideTriangle(float u, float v, float w)
+float Renderer::EdgeFunction(const Vector2& a, const Vector2& b, const Vector2& c)
 {
-    return (u >= 0.0f) && (v >= 0.0f) && (w >= 0.0f);
+    return (c.x - a.x) * (b.y - a.y) - (c.y - a.y) * (b.x - a.x);
 }
 
-void Renderer::ClearZBuffer()
+uint32_t Renderer::ColorToOx(float z)
 {
-    for (int i = 0; i < (width * height); ++i)
-    {
-        zBuffer[i] = numeric_limits<float>::max();
-    }
+    z = SDL_clamp(z, 0.0f, 1.0f);
+
+    // 가까울수록 빨강 → 멀수록 파랑
+    uint8_t r = static_cast<uint8_t>((1.0f - z) * 255);
+    uint8_t g = 0;
+    uint8_t b = static_cast<uint8_t>(z * 255);
+
+    return 0xFF000000 | (r << 16) | (g << 8) | b;
 }
 
 int main(int arg, char** argv)

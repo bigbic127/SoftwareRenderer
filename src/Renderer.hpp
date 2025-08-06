@@ -32,10 +32,11 @@ class Renderer : public Window
         void DrawPoint(int x, int y, int w, int h, uint32_t color);
         void DrawLine(Vector2 a, Vector2 b, uint32_t color = 0xFFFFFFFF);
         void DrawTriangle(Vector3 a, Vector3 b, Vector3 c, uint32_t color = 0xFFFFFFFF);
-        bool IsInsideTriangle(float u, float v, float w);
+        float EdgeFunction(const Vector2& a, const Vector2& b, const Vector2& c);
         void SetRenderMode(RenderMode render) {renderMode = render;}
         RenderMode GetRenderMode() const{return renderMode;}
-        void ClearZBuffer();
+    protected:
+        uint32_t DepthToColorGradient(float z);
     private:
         int FPS = 200;
         float frameSecond = 1000/FPS;
@@ -46,5 +47,4 @@ class Renderer : public Window
         Mesh mesh;
         Camera camera;
         RenderMode renderMode = RenderMode::Wireframe;
-        std::unique_ptr<float[]> zBuffer;
 };
