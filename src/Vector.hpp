@@ -12,6 +12,14 @@ class Vector2
         {
             return Vector2(x - vec.x, y - vec.y);
         }
+        Vector2 operator*(float scalar) const
+        {
+            return Vector2(x * scalar, y * scalar);
+        }
+        Vector2 operator/(float scalar) const
+        {
+            return Vector2(x / scalar, y / scalar);
+        }
         float Dot(const Vector2& vec) const
         {
             return x * vec.x + y * vec.y;

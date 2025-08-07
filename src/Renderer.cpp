@@ -152,7 +152,8 @@ void Renderer::Render()
             int gray = static_cast<int>(brightness * 255.0f);
             uint32_t color = 0xFF000000 | (gray << 16) | (gray << 8) | gray;// ARGB  각uint8
             //면 그리기
-            DrawTriangle(v1, v2, v3, color, true, uv1, uv2, uv3);
+            Vector3 uvz = Vector3(_a.z, _b.z, _c.z);
+            DrawTriangle(v1, v2, v3, color, bIsTextureMode, uv1, uv2, uv3, uvz);
             if (renderMode == RenderMode::FloatData)
             {
                 DrawLine(v1.Vector2i(), v2.Vector2i(), 0xFF333333);
@@ -208,9 +209,15 @@ void Renderer::ProcessInput(SDL_Event& event)
         else if (event.key.keysym.sym == SDLK_2)
             SetRenderMode(RenderMode::FloatData);
         else if (event.key.keysym.sym == SDLK_3)
+        {
             SetRenderMode(RenderMode::Shader);
+            bIsTextureMode = false;
+        }
         else if (event.key.keysym.sym == SDLK_4)
+        {
             SetRenderMode(RenderMode::Solid);
+            bIsTextureMode = true;
+        }
         break;
     case SDL_KEYUP:
         break;
@@ -306,12 +313,25 @@ void Renderer::DrawLine(Vector2 a, Vector2 b, uint32_t color)
     }
 }
 //삼각형 그리기 Barycentric Algorithm
-void Renderer::DrawTriangle(Vector3 a, Vector3 b, Vector3 c, uint32_t color, bool bIsTex, Vector2 uv0, Vector2 uv1, Vector2 uv2)
+void Renderer::DrawTriangle(Vector3 a, Vector3 b, Vector3 c, uint32_t color, bool bIsTex, Vector2 uv0, Vector2 uv1, Vector2 uv2, Vector3 uvz)
 {
     //2D좌표로 변환
     Vector2 p0 = { a.x, a.y };
     Vector2 p1 = { b.x, b.y };
     Vector2 p2 = { c.x, c.y };
+    //UV값을 view행렬 z값 보간
+    float uvz1 = abs(uvz.x);
+    float uvz2 = abs(uvz.y);
+    float uvz3 = abs(uvz.z);
+    float u0z = uv0.x / uvz1;
+    float u1z = uv1.x / uvz2;
+    float u2z = uv2.x / uvz3;
+    float v0z = uv0.y / uvz1;
+    float v1z = uv1.y / uvz2;
+    float v2z = uv2.y / uvz3;
+    float invz0 = 1.0f / uvz1;
+    float invz1 = 1.0f / uvz2;
+    float invz2 = 1.0f / uvz3;
     //AABB 범위 계산
     float minX = max(0.0f, floor(min({ p0.x, p1.x, p2.x })));
     float maxX = min((float)width - 1, ceil(max({ p0.x, p1.x, p2.x })));
@@ -335,11 +355,17 @@ void Renderer::DrawTriangle(Vector3 a, Vector3 b, Vector3 c, uint32_t color, boo
                 w0 /= area;
                 w1 /= area;
                 w2 /= area;
-                // 보간된 UV
-                float u = uv0.x*w0 + uv1.x*w1 + uv2.x*w2;
-                float v = uv0.y*w0 + uv1.y*w1 + uv2.y*w2;
                 // Barycentric interpolation (Z값 보간)
                 float z = a.z*w0 + b.z*w1 + c.z*w2;
+                // 보간된 UV
+                //float u = uv0.x*w0 + uv1.x*w1 + uv2.x*w2;
+                //float v = uv0.y*w0 + uv1.y*w1 + uv2.y*w2;
+                // UV 보간 (측명 일렁거림현상)
+                float u_over_z = w0 * u0z + w1 * u1z + w2 * u2z;
+                float v_over_z = w0 * v0z + w1 * v1z + w2 * v2z;
+                float inv_z = w0 * invz0 + w1 * invz1 + w2 * invz2;
+                float u = u_over_z / inv_z;
+                float v = v_over_z / inv_z;
                 int index = y * width + x;
                 if (z < zBuffer[index])
                 {
