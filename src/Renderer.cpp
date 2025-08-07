@@ -32,11 +32,35 @@ void Renderer::Ready()
         Quit();
     mesh = Mesh();
     mesh.Sphere();
-    LoadObjFile("../obj/bunny.obj", mesh.GetVertices(), mesh.GetIndices());
-    mesh.GetTransform().SetScale(Vector3(0.7,0.7,0.7));
-    mesh.GetTransform().SetScale(Vector3(10,10,10));
+    LoadObjFile("../obj/stev.obj", mesh);
+    LoadPngFile("../obj/stev.png", mesh);
+    //메쉬 스케일링
+    Vector3 minBound = { FLT_MAX, FLT_MAX, FLT_MAX };
+    Vector3 maxBound = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
+    for (const auto& v : mesh.GetVertices()) {
+        minBound.x = std::min(minBound.x, v.x);
+        minBound.y = std::min(minBound.y, v.y);
+        minBound.z = std::min(minBound.z, v.z);
+        maxBound.x = std::max(maxBound.x, v.x);
+        maxBound.y = std::max(maxBound.y, v.y);
+        maxBound.z = std::max(maxBound.z, v.z);
+    }
+    Vector3 center = {
+        (minBound.x + maxBound.x) * 0.5f,
+        (minBound.y + maxBound.y) * 0.5f,
+        (minBound.z + maxBound.z) * 0.5f,
+    };
+    Vector3 size = {
+        maxBound.x - minBound.x,
+        maxBound.y - minBound.y,
+        maxBound.z - minBound.z,
+    };
+    float margin = 0.003f;//화면 비율
+    float scaleX = width / size.x;
+    float scaleY = height / size.y;
+    float scale = min(scaleX, scaleY) * margin;
 
-    mesh.GetTransform().SetPosition(Vector3(0,-1,0));
+    mesh.GetTransform().SetScale(Vector3(scale,scale,scale));
 
 }
 
