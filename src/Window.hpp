@@ -7,7 +7,7 @@
 class Window
 {
 public: 
-    Window(int w=1280, int h=720);
+    Window(int w=1920, int h=1080);
     bool Initalization();
     void Input();
     void Quit();
