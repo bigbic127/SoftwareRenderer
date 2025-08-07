@@ -30,10 +30,11 @@ void Renderer::Ready()
         bIsLooping = true;
     else
         Quit();
-    mesh = Mesh();
-    mesh.Sphere();
-    LoadObjFile("../obj/stev.obj", mesh);
-    LoadPngFile("../obj/stev.png", mesh);
+
+    meshes.clear();
+    Mesh mesh = Mesh();
+    LoadObjFile("../obj/girl_body.obj", mesh);
+    LoadPngFile("../obj/girl_body.png", mesh);
     //메쉬 스케일링
     Vector3 minBound = { FLT_MAX, FLT_MAX, FLT_MAX };
     Vector3 maxBound = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
@@ -45,22 +46,28 @@ void Renderer::Ready()
         maxBound.y = std::max(maxBound.y, v.y);
         maxBound.z = std::max(maxBound.z, v.z);
     }
-    Vector3 center = {
-        (minBound.x + maxBound.x) * 0.5f,
-        (minBound.y + maxBound.y) * 0.5f,
-        (minBound.z + maxBound.z) * 0.5f,
-    };
-    Vector3 size = {
-        maxBound.x - minBound.x,
-        maxBound.y - minBound.y,
-        maxBound.z - minBound.z,
-    };
-    float margin = 0.003f;//화면 비율
-    float scaleX = width / size.x;
-    float scaleY = height / size.y;
-    float scale = min(scaleX, scaleY) * margin;
+    Vector3 size = minBound - maxBound;
+    Vector3 center = (minBound + maxBound) * 0.5f;
+    float max_dim = std::max({size.x, size.y, size.z});
+    float scale_factor = 1.0f / max_dim;
+    float scale_factor2 = -1.0f * scale_factor;
 
-    mesh.GetTransform().SetScale(Vector3(scale,scale,scale));
+    mesh.GetTransform().SetPosition(center * scale_factor);
+    mesh.GetTransform().SetScale(Vector3(scale_factor2,scale_factor2,scale_factor2));
+    meshes.push_back(mesh);
+
+    mesh = Mesh();
+    LoadObjFile("../obj/girl_face.obj", mesh);
+    LoadPngFile("../obj/girl_face.png", mesh);
+    mesh.GetTransform().SetPosition(center * scale_factor);
+    mesh.GetTransform().SetScale(Vector3(scale_factor2,scale_factor2,scale_factor2));
+    meshes.push_back(mesh);
+    mesh = Mesh();
+    LoadObjFile("../obj/girl_bg.obj", mesh);
+    LoadPngFile("../obj/girl_bg.png", mesh);
+    mesh.GetTransform().SetPosition(center * scale_factor);
+    mesh.GetTransform().SetScale(Vector3(scale_factor2,scale_factor2,scale_factor2));
+    meshes.push_back(mesh);
 
 }
 
@@ -77,7 +84,7 @@ void Renderer::Update()
     //Mesh Transform 처리
     Transform& transform = mesh.GetTransform();
     Vector3 rot = transform.GetRotation();
-    rot.y += 0.05f * frameSecond;
+    rot.y = 7.0f * frameSecond;
     transform.SetRotation(rot);
 }
 
@@ -126,7 +133,7 @@ void Renderer::Render()
             Vector3 v1 = projectionPoints[a];
             Vector3 v2 = projectionPoints[b];
             Vector3 v3 = projectionPoints[c];
-            //UV
+            //UV z값 보간 (view행렬의 w값)
             Triangle& triuv = uvIndices[i];
             int _ua = triuv.a;
             int _ub = triuv.b;
@@ -152,8 +159,7 @@ void Renderer::Render()
             int gray = static_cast<int>(brightness * 255.0f);
             uint32_t color = 0xFF000000 | (gray << 16) | (gray << 8) | gray;// ARGB  각uint8
             //면 그리기
-            Vector3 uvz = Vector3(_a.z, _b.z, _c.z);
-            DrawTriangle(v1, v2, v3, color, bIsTextureMode, uv1, uv2, uv3, uvz);
+            DrawTriangle(v1, v2, v3, color, bIsTextureMode, uv1, uv2, uv3);
             if (renderMode == RenderMode::FloatData)
             {
                 DrawLine(v1.Vector2i(), v2.Vector2i(), 0xFF333333);
@@ -313,25 +319,12 @@ void Renderer::DrawLine(Vector2 a, Vector2 b, uint32_t color)
     }
 }
 //삼각형 그리기 Barycentric Algorithm
-void Renderer::DrawTriangle(Vector3 a, Vector3 b, Vector3 c, uint32_t color, bool bIsTex, Vector2 uv0, Vector2 uv1, Vector2 uv2, Vector3 uvz)
+void Renderer::DrawTriangle(Vector3 a, Vector3 b, Vector3 c, uint32_t color, bool bIsTex, Vector2 uv0, Vector2 uv1, Vector2 uv2)
 {
     //2D좌표로 변환
     Vector2 p0 = { a.x, a.y };
     Vector2 p1 = { b.x, b.y };
     Vector2 p2 = { c.x, c.y };
-    //UV값을 view행렬 z값 보간
-    float uvz1 = abs(uvz.x);
-    float uvz2 = abs(uvz.y);
-    float uvz3 = abs(uvz.z);
-    float u0z = uv0.x / uvz1;
-    float u1z = uv1.x / uvz2;
-    float u2z = uv2.x / uvz3;
-    float v0z = uv0.y / uvz1;
-    float v1z = uv1.y / uvz2;
-    float v2z = uv2.y / uvz3;
-    float invz0 = 1.0f / uvz1;
-    float invz1 = 1.0f / uvz2;
-    float invz2 = 1.0f / uvz3;
     //AABB 범위 계산
     float minX = max(0.0f, floor(min({ p0.x, p1.x, p2.x })));
     float maxX = min((float)width - 1, ceil(max({ p0.x, p1.x, p2.x })));
@@ -358,14 +351,8 @@ void Renderer::DrawTriangle(Vector3 a, Vector3 b, Vector3 c, uint32_t color, boo
                 // Barycentric interpolation (Z값 보간)
                 float z = a.z*w0 + b.z*w1 + c.z*w2;
                 // 보간된 UV
-                //float u = uv0.x*w0 + uv1.x*w1 + uv2.x*w2;
-                //float v = uv0.y*w0 + uv1.y*w1 + uv2.y*w2;
-                // UV 보간 (측명 일렁거림현상)
-                float u_over_z = w0 * u0z + w1 * u1z + w2 * u2z;
-                float v_over_z = w0 * v0z + w1 * v1z + w2 * v2z;
-                float inv_z = w0 * invz0 + w1 * invz1 + w2 * invz2;
-                float u = u_over_z / inv_z;
-                float v = v_over_z / inv_z;
+                float u = uv0.x*w0 + uv1.x*w1 + uv2.x*w2;
+                float v = uv0.y*w0 + uv1.y*w1 + uv2.y*w2;
                 int index = y * width + x;
                 if (z < zBuffer[index])
                 {
