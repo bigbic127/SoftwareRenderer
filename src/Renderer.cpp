@@ -51,7 +51,6 @@ void Renderer::Ready()
     float max_dim = std::max({size.x, size.y, size.z});
     float scale_factor = 1.0f / max_dim;
     float scale_factor2 = -1.0f * scale_factor;
-
     mesh.GetTransform().SetPosition(center * scale_factor);
     mesh.GetTransform().SetScale(Vector3(scale_factor2,scale_factor2,scale_factor2));
     meshes.push_back(mesh);
@@ -82,10 +81,13 @@ void Renderer::Update()
     camera.SetLookAt(Vector3(0.f,0.5f, 4.f), Vector3(0.f,0.f,0.f), Vector3(0.f,1.f,0.f));
     camera.SetPerspective(70.f, float(width)/height, 0.1f, 100.f);
     //Mesh Transform 처리
-    Transform& transform = mesh.GetTransform();
-    Vector3 rot = transform.GetRotation();
-    rot.y = 7.0f * frameSecond;
-    transform.SetRotation(rot);
+    for (Mesh&mesh : meshes)
+    {
+        Transform& transform = mesh.GetTransform();
+        Vector3 rot = transform.GetRotation();
+        rot.y += 1.0f * frameSecond;
+        transform.SetRotation(rot);
+    }
 }
 
 void Renderer::Render()
@@ -94,104 +96,108 @@ void Renderer::Render()
     DrawGrid();
     //DrawPoint(10,10,4,4,0xFFFF0000);
     //메쉬 그리기
-    vector<Vector3> vertices = mesh.GetVertices();
-    vector<Triangle> indices = mesh.GetIndices();
-    vector<Vector2> uvs = mesh.GetUVs();
-    vector<Triangle> uvIndices = mesh.GetUVIndices();
-    vector<Vector3> worldVertices = mesh.GetWorldVertices();
-    vector<uint32_t> colors = mesh.GetColors();
-    Vector3 cameraPosition = camera.GetPosition();
-    //뷰행렬로 변환
-    projectionPoints.clear();
-    worldVertices.clear();
-    for(Vector3& vertice:vertices)
+    for (Mesh&mesh : meshes)
     {
-        //행렬 변환 (world * view * projection) -> clip -> NDC(-1 ~ 1 정규화)
-        Vector4 vec4 = Vector4(vertice.x, vertice.y, vertice.z, 1.0f);//Vector4로 변환
-        Vector4 v = camera.GetProjectionMatrix() * mesh.GetTransform().GetMatrix() * vec4;//프로젝션행렬까지 변환
-        Vector4 w = mesh.GetTransform().GetMatrix() * vec4;//뷰행렬까지 변환 라이팅계산
-        Vector3 p = Vector3(v.x/v.w , v.y/v.w, v.z/v.w);//NDC 좌표계로 변환
-        //화면 중앙으로 위치
-        float screenX = (p.x * 0.5f + 0.5f) * width;
-        float screenY = (1.0f - (p.y * 0.5f + 0.5f)) * height;
-        float zdepth = p.z * 0.5f + 0.5f;
-        Vector3 vertex = Vector3(screenX, screenY, zdepth);
-        projectionPoints.push_back(vertex);
-        worldVertices.push_back(Vector3(w.x , w.y, w.z));
-    }
-    //픽셀그리기
-    if (renderMode == RenderMode::Solid || renderMode == RenderMode::FloatData || renderMode == RenderMode::Shader)
-    {
-        //면그리기
-        int colorIndex = 0;
-        for (int i = 0; i < indices.size(); i++)
+        vector<Vector3> vertices = mesh.GetVertices();
+        vector<Triangle> indices = mesh.GetIndices();
+        vector<Vector2> uvs = mesh.GetUVs();
+        vector<Triangle> uvIndices = mesh.GetUVIndices();
+        vector<Vector3> worldVertices = mesh.GetWorldVertices();
+        vector<uint32_t> colors = mesh.GetColors();
+        Vector3 cameraPosition = camera.GetPosition();
+        vector<Vector3>& projectionPoints = mesh.GetPojectionPoint();
+        //뷰행렬로 변환
+        projectionPoints.clear();
+        worldVertices.clear();
+        for(Vector3& vertice:vertices)
         {
-            Triangle& tri = indices[i];
-            int a = tri.a;
-            int b = tri.b;
-            int c = tri.c;
-            Vector3 v1 = projectionPoints[a];
-            Vector3 v2 = projectionPoints[b];
-            Vector3 v3 = projectionPoints[c];
-            //UV z값 보간 (view행렬의 w값)
-            Triangle& triuv = uvIndices[i];
-            int _ua = triuv.a;
-            int _ub = triuv.b;
-            int _uc = triuv.c;
-            Vector2 uv1 = uvs[_ua];
-            Vector2 uv2 = uvs[_ub];
-            Vector2 uv3 = uvs[_uc];
-            //backface culling 계산
-            Vector3 _a = worldVertices[a];
-            Vector3 _b = worldVertices[b];
-            Vector3 _c = worldVertices[c];
-            Vector3 triCenter = (_a + _b + _c) / 3.0f;
-            Vector3 cameraDir = (triCenter - cameraPosition).Normalized();
-            Vector3 normal = ((_b-_a).Cross(_c-_a)).Normalized();
-            if (normal.Dot(cameraDir) >= 0)
+            //행렬 변환 (world * view * projection) -> clip -> NDC(-1 ~ 1 정규화)
+            Vector4 vec4 = Vector4(vertice.x, vertice.y, vertice.z, 1.0f);//Vector4로 변환
+            Vector4 v = camera.GetProjectionMatrix() * mesh.GetTransform().GetMatrix() * vec4;//프로젝션행렬까지 변환
+            Vector4 w = mesh.GetTransform().GetMatrix() * vec4;//뷰행렬까지 변환 라이팅계산
+            Vector3 p = Vector3(v.x/v.w , v.y/v.w, v.z/v.w);//NDC 좌표계로 변환
+            //화면 중앙으로 위치
+            float screenX = (p.x * 0.5f + 0.5f) * width;
+            float screenY = (1.0f - (p.y * 0.5f + 0.5f)) * height;
+            float zdepth = p.z * 0.5f + 0.5f;
+            Vector3 vertex = Vector3(screenX, screenY, zdepth);
+            projectionPoints.push_back(vertex);
+            worldVertices.push_back(Vector3(w.x , w.y, w.z));
+        }
+        //픽셀그리기
+        if (renderMode == RenderMode::Solid || renderMode == RenderMode::FloatData || renderMode == RenderMode::Shader)
+        {
+            //면그리기
+            int colorIndex = 0;
+            for (int i = 0; i < indices.size(); i++)
             {
+                Triangle& tri = indices[i];
+                int a = tri.a;
+                int b = tri.b;
+                int c = tri.c;
+                Vector3 v1 = projectionPoints[a];
+                Vector3 v2 = projectionPoints[b];
+                Vector3 v3 = projectionPoints[c];
+                //UV z값 보간 (view행렬의 w값)
+                Triangle& triuv = uvIndices[i];
+                int _ua = triuv.a;
+                int _ub = triuv.b;
+                int _uc = triuv.c;
+                Vector2 uv1 = uvs[_ua];
+                Vector2 uv2 = uvs[_ub];
+                Vector2 uv3 = uvs[_uc];
+                //backface culling 계산
+                Vector3 _a = worldVertices[a];
+                Vector3 _b = worldVertices[b];
+                Vector3 _c = worldVertices[c];
+                Vector3 triCenter = (_a + _b + _c) / 3.0f;
+                Vector3 cameraDir = (triCenter - cameraPosition).Normalized();
+                Vector3 normal = ((_b-_a).Cross(_c-_a)).Normalized();
+                if (normal.Dot(cameraDir) >= 0)
+                {
+                    colorIndex += 1;
+                    continue;
+                }
+                //광원 및 색상
+                float brightness = max(0.0f, normal.Dot(cameraDir * -1));
+                brightness *= 1.0f;
+                int gray = static_cast<int>(brightness * 255.0f);
+                uint32_t color = 0xFF000000 | (gray << 16) | (gray << 8) | gray;// ARGB  각uint8
+                //면 그리기
+                DrawTriangle(v1, v2, v3, color, bIsTextureMode, uv1, uv2, uv3, mesh);
+                if (renderMode == RenderMode::FloatData)
+                {
+                    DrawLine(v1.Vector2i(), v2.Vector2i(), 0xFF333333);
+                    DrawLine(v2.Vector2i(), v3.Vector2i(), 0xFF333333);
+                    DrawLine(v1.Vector2i(), v3.Vector2i(), 0xFF333333);
+                    DrawPoint(v1.x, v1.y, 4,4,0xFFFF0000);
+                    DrawPoint(v2.x, v2.y, 4,4,0xFFFF0000);
+                    DrawPoint(v3.x, v3.y, 4,4,0xFFFF0000);
+                }
                 colorIndex += 1;
-                continue;
             }
-            //광원 및 색상
-            float brightness = max(0.0f, normal.Dot(cameraDir * -1));
-            brightness *= 1.0f;
-            int gray = static_cast<int>(brightness * 255.0f);
-            uint32_t color = 0xFF000000 | (gray << 16) | (gray << 8) | gray;// ARGB  각uint8
-            //면 그리기
-            DrawTriangle(v1, v2, v3, color, bIsTextureMode, uv1, uv2, uv3);
-            if (renderMode == RenderMode::FloatData)
+        }
+        else if (renderMode == RenderMode::Wireframe)
+        {
+        //선그리기
+            for (Triangle& tri: indices)
             {
+                int a = tri.a;
+                int b = tri.b;
+                int c = tri.c;
+                Vector3 v1 = projectionPoints[a];
+                Vector3 v2 = projectionPoints[b];
+                Vector3 v3 = projectionPoints[c]; 
                 DrawLine(v1.Vector2i(), v2.Vector2i(), 0xFF333333);
                 DrawLine(v2.Vector2i(), v3.Vector2i(), 0xFF333333);
                 DrawLine(v1.Vector2i(), v3.Vector2i(), 0xFF333333);
-                DrawPoint(v1.x, v1.y, 4,4,0xFFFF0000);
-                DrawPoint(v2.x, v2.y, 4,4,0xFFFF0000);
-                DrawPoint(v3.x, v3.y, 4,4,0xFFFF0000);
             }
-            colorIndex += 1;
-        }
-    }
-    else if (renderMode == RenderMode::Wireframe)
-    {
-    //선그리기
-        for (Triangle& tri: indices)
-        {
-            int a = tri.a;
-            int b = tri.b;
-            int c = tri.c;
-            Vector3 v1 = projectionPoints[a];
-            Vector3 v2 = projectionPoints[b];
-            Vector3 v3 = projectionPoints[c]; 
-            DrawLine(v1.Vector2i(), v2.Vector2i(), 0xFF333333);
-            DrawLine(v2.Vector2i(), v3.Vector2i(), 0xFF333333);
-            DrawLine(v1.Vector2i(), v3.Vector2i(), 0xFF333333);
-        }
-        //점 그리기
-        for (Vector3& point:projectionPoints)
-        {
-            Vector3& p = point;
-            DrawPoint(p.x, p.y, 4,4,0xFFFF0000);
+            //점 그리기
+            for (Vector3& point:projectionPoints)
+            {
+                Vector3& p = point;
+                DrawPoint(p.x, p.y, 4,4,0xFFFF0000);
+            }
         }
     }
     //텍스쳐에 컬러버퍼에 들어있는 데이터 적용
@@ -319,7 +325,7 @@ void Renderer::DrawLine(Vector2 a, Vector2 b, uint32_t color)
     }
 }
 //삼각형 그리기 Barycentric Algorithm
-void Renderer::DrawTriangle(Vector3 a, Vector3 b, Vector3 c, uint32_t color, bool bIsTex, Vector2 uv0, Vector2 uv1, Vector2 uv2)
+void Renderer::DrawTriangle(Vector3 a, Vector3 b, Vector3 c, uint32_t color, bool bIsTex, Vector2 uv0, Vector2 uv1, Vector2 uv2, Mesh& mesh)
 {
     //2D좌표로 변환
     Vector2 p0 = { a.x, a.y };

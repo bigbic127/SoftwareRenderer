@@ -20,7 +20,9 @@ class Mesh
         int& GetUVsHeight() {return texHeight;}
 
         vector<uint32_t>& GetColors() {return colors;}
-        vector<uint32_t>& GetTexture() {return colors;}
+        vector<uint32_t>& GetTexture() {return textures;}
+
+        vector<Vector3>& GetPojectionPoint() {return projectionPoints;}
 
         Transform& GetTransform() {return transform;}
         vector<Vector3>& GetWorldVertices() {return worldVertices;}
