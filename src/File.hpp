@@ -17,15 +17,19 @@ using namespace std;
 static void LoadPngFile(const string& path, Mesh& mesh)
 {
     vector<uint32_t>& texture = mesh.GetTexture();
+    int& width = mesh.GetUVsWidth();
+    int& height = mesh.GetUVsHeight();
     std::vector<unsigned char> image;
-    unsigned width;
-    unsigned height;
-    unsigned error = lodepng::decode(image, width, height, path);
+    unsigned _width;
+    unsigned _height;
+    unsigned error = lodepng::decode(image, _width, _height, path);
     if (error)
         SDL_Log("PNG Load Error");
 
 
-    size_t pixelCount = width * height;
+    size_t pixelCount = _width * _height;
+    width = int(_width);
+    height = int(_height);
     texture.clear();
     for (size_t i = 0; i < pixelCount; ++i) {
         uint8_t r = image[i * 4 + 0];

@@ -88,7 +88,9 @@ void Renderer::Render()
     //DrawPoint(10,10,4,4,0xFFFF0000);
     //메쉬 그리기
     vector<Vector3> vertices = mesh.GetVertices();
-    vector<Triangle> triangle = mesh.GetIndices();
+    vector<Triangle> indices = mesh.GetIndices();
+    vector<Vector2> uvs = mesh.GetUVs();
+    vector<Triangle> uvIndices = mesh.GetUVIndices();
     vector<Vector3> worldVertices = mesh.GetWorldVertices();
     vector<uint32_t> colors = mesh.GetColors();
     Vector3 cameraPosition = camera.GetPosition();
@@ -115,14 +117,23 @@ void Renderer::Render()
     {
         //면그리기
         int colorIndex = 0;
-        for (Triangle& tri: triangle)
+        for (int i = 0; i < indices.size(); i++)
         {
+            Triangle& tri = indices[i];
             int a = tri.a;
             int b = tri.b;
             int c = tri.c;
             Vector3 v1 = projectionPoints[a];
             Vector3 v2 = projectionPoints[b];
             Vector3 v3 = projectionPoints[c];
+            //UV
+            Triangle& triuv = uvIndices[i];
+            int _ua = triuv.a;
+            int _ub = triuv.b;
+            int _uc = triuv.c;
+            Vector2 uv1 = uvs[_ua];
+            Vector2 uv2 = uvs[_ub];
+            Vector2 uv3 = uvs[_uc];
             //backface culling 계산
             Vector3 _a = worldVertices[a];
             Vector3 _b = worldVertices[b];
@@ -141,7 +152,7 @@ void Renderer::Render()
             int gray = static_cast<int>(brightness * 255.0f);
             uint32_t color = 0xFF000000 | (gray << 16) | (gray << 8) | gray;// ARGB  각uint8
             //면 그리기
-            DrawTriangle(v1, v2, v3, color);
+            DrawTriangle(v1, v2, v3, color, true, uv1, uv2, uv3);
             if (renderMode == RenderMode::FloatData)
             {
                 DrawLine(v1.Vector2i(), v2.Vector2i(), 0xFF333333);
@@ -157,7 +168,7 @@ void Renderer::Render()
     else if (renderMode == RenderMode::Wireframe)
     {
     //선그리기
-        for (Triangle& tri: triangle)
+        for (Triangle& tri: indices)
         {
             int a = tri.a;
             int b = tri.b;
@@ -295,7 +306,7 @@ void Renderer::DrawLine(Vector2 a, Vector2 b, uint32_t color)
     }
 }
 //삼각형 그리기 Barycentric Algorithm
-void Renderer::DrawTriangle(Vector3 a, Vector3 b, Vector3 c, uint32_t color)
+void Renderer::DrawTriangle(Vector3 a, Vector3 b, Vector3 c, uint32_t color, bool bIsTex, Vector2 uv0, Vector2 uv1, Vector2 uv2)
 {
     //2D좌표로 변환
     Vector2 p0 = { a.x, a.y };
@@ -324,12 +335,17 @@ void Renderer::DrawTriangle(Vector3 a, Vector3 b, Vector3 c, uint32_t color)
                 w0 /= area;
                 w1 /= area;
                 w2 /= area;
-                float z = a.z * w0 + b.z * w1 + c.z * w2;// Barycentric interpolation (Z값 보간)
+                // 보간된 UV
+                float u = uv0.x*w0 + uv1.x*w1 + uv2.x*w2;
+                float v = uv0.y*w0 + uv1.y*w1 + uv2.y*w2;
+                // Barycentric interpolation (Z값 보간)
+                float z = a.z*w0 + b.z*w1 + c.z*w2;
                 int index = y * width + x;
                 if (z < zBuffer[index])
                 {
                     zBuffer[index] = z;
                     //DrawPoint(x, y, 5, 5, color);
+                    if(bIsTex) color = DrawTexture(u, v, mesh);
                     colorBuffer[index] = color;
                 }
             }
@@ -352,6 +368,20 @@ uint32_t Renderer::ColorToOx(float z)
     uint8_t b = static_cast<uint8_t>(z * 255);
 
     return 0xFF000000 | (r << 16) | (g << 8) | b;
+}
+
+uint32_t Renderer::DrawTexture(float u, float v, Mesh& mesh)
+{
+    vector<uint32_t>& texture = mesh.GetTexture();
+    int& width = mesh.GetUVsWidth();
+    int& height = mesh.GetUVsHeight();
+    v = 1.0f - v; // ← Y축 뒤집기
+    float texX = u * width - 0.5f;
+    float texY = v * height - 0.5f;
+    int x = SDL_clamp(int(texX + 0.5f), 0, (int)width - 1);
+    int y = SDL_clamp(int(texY + 0.5f), 0, (int)height - 1);
+    uint32_t pixel = texture[y * width + x];
+    return pixel;
 }
 
 int main(int arg, char** argv)

@@ -16,9 +16,12 @@ class Mesh
         vector<Triangle>& GetUVIndices() {return uvIndices;}
         vector<Vector3>& GetNormals() {return normals;}
         vector<Vector2>& GetUVs() {return uvs;}
+        int& GetUVsWidth() {return texWidth;}
+        int& GetUVsHeight() {return texHeight;}
+
         vector<uint32_t>& GetColors() {return colors;}
         vector<uint32_t>& GetTexture() {return colors;}
-        
+
         Transform& GetTransform() {return transform;}
         vector<Vector3>& GetWorldVertices() {return worldVertices;}
         void Cube();
