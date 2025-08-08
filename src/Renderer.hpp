@@ -53,6 +53,9 @@ class Renderer : public Window
         bool bIsTextureMode = false;
         bool bIsSpace = false;
         bool bIsClicked = false;
+        bool bIsMClicked = false;
         Vector2 screenPos;
         Vector3 screenOriPos;
+        Vector3 screenOriRot;
+        Vector3 targetPos;
 };

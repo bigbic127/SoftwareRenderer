@@ -26,6 +26,7 @@ class Camera
         Matrix4x4 GetViewMatrix() {return LookAt();}
         Vector3 GetDirection() {return (target - eye).Normalized();}
         Vector3 GetPosition() const {return eye;}
+        Vector3 GetTarget() const {return target;}
         vector<Vector4> GetFrustumPlanes(const Matrix4x4& m) {return ExtractFrustumPlanes(m);}
     private:
         Matrix4x4 LookAt()

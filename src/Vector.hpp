@@ -42,6 +42,10 @@ class Vector3
         {
             return Vector3(x - vec.x, y - vec.y, z - vec.z);
         }
+        Vector3 operator*(Vector3& vec) const
+        {
+            return Vector3(x * vec.x, y * vec.y, z * vec.z);
+        }
         Vector3 operator*(float scalar) const
         {
             return Vector3(x * scalar, y * scalar, z * scalar);

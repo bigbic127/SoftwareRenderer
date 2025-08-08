@@ -14,7 +14,13 @@ class Transform
         void SetPosition(Vector3 pos) {this->position = pos;}
         void SetRotation(Vector3 rot) {this->rotation = rot;}
         void SetScale(Vector3 s) {this->scale = s;}
-        
+        Vector3 GetRotateAroundAxis(const Vector3& v, const Vector3& axis, float angleRad)
+        {
+            Vector3 k = axis.Normalized();
+            float cosTheta = cosf(angleRad);
+            float sinTheta = sinf(angleRad);
+            return v * cosTheta + k.Cross(v) * sinTheta + k * k.Dot(v) * (1 - cosTheta);
+        }
         Matrix4x4 GetMatrix(){return Translation() * Rotation() * Scale();}
     private:
         Matrix4x4 Translation()
