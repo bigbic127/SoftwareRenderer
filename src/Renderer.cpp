@@ -3,6 +3,7 @@
 #include "Transform.hpp"
 #include "Camera.hpp"
 #include "File.hpp"
+#include "FileDialog.hpp"
 #include <cmath>
 
 using namespace std;
@@ -30,44 +31,12 @@ void Renderer::Ready()
         bIsLooping = true;
     else
         Quit();
-
+    Mesh mesh;
     meshes.clear();
-    Mesh mesh = Mesh();
-    LoadObjFile("../obj/girl_body.obj", mesh);
-    LoadPngFile("../obj/girl_body.png", mesh);
-    //메쉬 스케일링
-    Vector3 minBound = { FLT_MAX, FLT_MAX, FLT_MAX };
-    Vector3 maxBound = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
-    for (const auto& v : mesh.GetVertices()) {
-        minBound.x = std::min(minBound.x, v.x);
-        minBound.y = std::min(minBound.y, v.y);
-        minBound.z = std::min(minBound.z, v.z);
-        maxBound.x = std::max(maxBound.x, v.x);
-        maxBound.y = std::max(maxBound.y, v.y);
-        maxBound.z = std::max(maxBound.z, v.z);
-    }
-    Vector3 size = minBound - maxBound;
-    Vector3 center = (minBound + maxBound) * 0.5f;
-    float max_dim = std::max({size.x, size.y, size.z});
-    float scale_factor = 1.0f / max_dim;
-    float scale_factor2 = -1.0f * scale_factor;
-    mesh.GetTransform().SetPosition(center * scale_factor);
-    mesh.GetTransform().SetScale(Vector3(scale_factor2,scale_factor2,scale_factor2));
     meshes.push_back(mesh);
-
-    mesh = Mesh();
-    LoadObjFile("../obj/girl_face.obj", mesh);
-    LoadPngFile("../obj/girl_face.png", mesh);
-    mesh.GetTransform().SetPosition(center * scale_factor);
-    mesh.GetTransform().SetScale(Vector3(scale_factor2,scale_factor2,scale_factor2));
-    meshes.push_back(mesh);
-    mesh = Mesh();
-    LoadObjFile("../obj/girl_bg.obj", mesh);
-    LoadPngFile("../obj/girl_bg.png", mesh);
-    mesh.GetTransform().SetPosition(center * scale_factor);
-    mesh.GetTransform().SetScale(Vector3(scale_factor2,scale_factor2,scale_factor2));
-    meshes.push_back(mesh);
-
+    //카메라 파마리터 변경
+    camera.SetLookAt(Vector3(0.f,0.5f, 4.f), Vector3(0.f,0.f,0.f), Vector3(0.f,1.f,0.f));
+    camera.SetPerspective(70.f, float(width)/height, 0.1f, 100.f);
 }
 
 void Renderer::Update()
@@ -77,16 +46,16 @@ void Renderer::Update()
     if (timeToWait > 0 && timeToWait <= frameSecond)
         SDL_Delay(timeToWait);
     previousFrameSecond = SDL_GetTicks();
-    //카메라 파마리터 변경
-    camera.SetLookAt(Vector3(0.f,0.5f, 4.f), Vector3(0.f,0.f,0.f), Vector3(0.f,1.f,0.f));
-    camera.SetPerspective(70.f, float(width)/height, 0.1f, 100.f);
     //Mesh Transform 처리
-    for (Mesh&mesh : meshes)
+    if (bIsSpace)
     {
-        Transform& transform = mesh.GetTransform();
-        Vector3 rot = transform.GetRotation();
-        rot.y += 1.0f * frameSecond;
-        transform.SetRotation(rot);
+        for (Mesh&mesh : meshes)
+        {
+            Transform& transform = mesh.GetTransform();
+            Vector3 rot = transform.GetRotation();
+            rot.y += 0.5f * frameSecond;
+            transform.SetRotation(rot);
+        }
     }
 }
 
@@ -230,12 +199,49 @@ void Renderer::ProcessInput(SDL_Event& event)
             SetRenderMode(RenderMode::Solid);
             bIsTextureMode = true;
         }
+        else if (event.key.keysym.sym == SDLK_o)
+            OpenObjFile();
+        else if (event.key.keysym.sym == SDLK_SPACE)
+            bIsSpace = !bIsSpace;
+        InputTransform(event);
         break;
     case SDL_KEYUP:
         break;
     case SDL_MOUSEBUTTONDOWN:
+        if (event.button.button == SDL_BUTTON_LEFT)
+        {
+            bIsClicked = true;
+            screenPos.x = event.button.x;
+            screenPos.y = event.button.y;
+            screenOriPos = camera.GetPosition();
+        }
+        break;
+    case SDL_MOUSEBUTTONUP:
+        if (event.button.button == SDL_BUTTON_LEFT)
+            bIsClicked = false;
         break;
     case SDL_MOUSEWHEEL:
+    {
+        Vector3 cameraPosition = camera.GetPosition();
+        Vector3 cameraNormal;
+        cameraNormal = (Vector3(0.f,0.f,0.f) - cameraPosition).Normalized() * (event.wheel.y * -0.25f);
+        cameraPosition = cameraPosition - cameraNormal;
+        camera.SetLookAt(cameraPosition, Vector3(0.f,0.f,0.f), Vector3(0.f,1.f,0.f));
+    }
+        break;
+    case SDL_MOUSEMOTION:
+        if (bIsClicked)
+        {
+            Transform transform;
+            Vector2 motion, vec;
+            motion.x = event.motion.x;
+            motion.y = event.motion.y;
+            vec = (motion - screenPos)*0.2f;
+
+            transform.SetRotation(Vector3(-vec.y, -vec.x, 0.0f));
+            Vector3 cameraPosition = transform.GetMatrix() * screenOriPos;
+            camera.SetLookAt(cameraPosition, Vector3(0.f,0.f,0.f), Vector3(0.f,1.f,0.f));
+        }
         break;
     default:
         break;
@@ -364,7 +370,7 @@ void Renderer::DrawTriangle(Vector3 a, Vector3 b, Vector3 c, uint32_t color, boo
                 {
                     zBuffer[index] = z;
                     //DrawPoint(x, y, 5, 5, color);
-                    if(bIsTex) color = DrawTexture(u, v, mesh);
+                    if(bIsTex && mesh.GetTexture().size() > 0) color = DrawTexture(u, v, mesh);
                     colorBuffer[index] = color;
                 }
             }
@@ -401,6 +407,100 @@ uint32_t Renderer::DrawTexture(float u, float v, Mesh& mesh)
     int y = SDL_clamp(int(texY + 0.5f), 0, (int)height - 1);
     uint32_t pixel = texture[y * width + x];
     return pixel;
+}
+
+void Renderer::OpenObjFile()
+{
+
+    std::vector<std::filesystem::path> paths = FileDialog::ShowFileDialog();
+    if (paths.size() <= 0)
+        return;
+    meshes.clear();
+    for (auto& path : paths)
+    {
+        std::filesystem::path objPath = path;
+        std::filesystem::path pngPath = path;
+        pngPath.replace_extension(".png");
+        Mesh mesh = Mesh();
+        LoadObjFile(objPath.string(), mesh);
+        LoadPngFile(pngPath.string(), mesh);
+        meshes.push_back(mesh);
+    }
+    //메쉬 스케일링
+    Vector3 minBound = { FLT_MAX, FLT_MAX, FLT_MAX };
+    Vector3 maxBound = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
+    for (Mesh& mesh : meshes)
+    {
+        for (const auto& v : mesh.GetVertices()) {
+            minBound.x = std::min(minBound.x, v.x);
+            minBound.y = std::min(minBound.y, v.y);
+            minBound.z = std::min(minBound.z, v.z);
+            maxBound.x = std::max(maxBound.x, v.x);
+            maxBound.y = std::max(maxBound.y, v.y);
+            maxBound.z = std::max(maxBound.z, v.z);
+        }
+    }
+    Vector3 size = minBound - maxBound;
+    Vector3 center = (minBound + maxBound) * 0.5f;
+    float max_dim = std::max({size.x, size.y, size.z});
+    float value = 1.0f;
+    float scale_factor = value / max_dim;
+    float scale_factor2 = -value * scale_factor;
+    for (Mesh& mesh : meshes)
+    {
+        mesh.GetTransform().SetPosition(center * scale_factor);
+        mesh.GetTransform().SetScale(Vector3(scale_factor2,scale_factor2,scale_factor2));
+    }
+    camera.SetLookAt(Vector3(0.f,0.5f, 4.f), Vector3(0.f,0.f,0.f), Vector3(0.f,1.f,0.f));
+    camera.SetPerspective(70.f, float(width)/height, 0.1f, 100.f);
+}
+
+void Renderer::InputTransform(SDL_Event& event)
+{
+    switch (event.type)
+    {
+        case SDL_KEYDOWN:
+            if (event.key.keysym.sym == SDLK_UP)
+            {
+                for (Mesh&mesh : meshes)
+                {
+                    Transform& transform = mesh.GetTransform();
+                    Vector3 rot = transform.GetRotation();
+                    rot.x += 0.5f * frameSecond;
+                    transform.SetRotation(rot);
+                }
+            }
+            else if (event.key.keysym.sym == SDLK_DOWN)
+            {
+                for (Mesh&mesh : meshes)
+                {
+                    Transform& transform = mesh.GetTransform();
+                    Vector3 rot = transform.GetRotation();
+                    rot.x -= 0.5f * frameSecond;
+                    transform.SetRotation(rot);
+                }
+            }
+            else if (event.key.keysym.sym == SDLK_RIGHT)
+            {
+                for (Mesh&mesh : meshes)
+                {
+                    Transform& transform = mesh.GetTransform();
+                    Vector3 rot = transform.GetRotation();
+                    rot.y += 0.5f * frameSecond;
+                    transform.SetRotation(rot);
+                }
+            }
+            else if (event.key.keysym.sym == SDLK_LEFT)
+            {
+                for (Mesh&mesh : meshes)
+                {
+                    Transform& transform = mesh.GetTransform();
+                    Vector3 rot = transform.GetRotation();
+                    rot.y -= 0.5f * frameSecond;
+                    transform.SetRotation(rot);
+                }
+            }
+    }
 }
 
 int main(int arg, char** argv)

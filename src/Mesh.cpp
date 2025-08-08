@@ -38,6 +38,18 @@ void Mesh::Cube()
         {3, 6, 7},
         {3, 2, 6}
     };
+    uvs =
+    {
+        {0.0f, 1.0f}, // 0 - 왼쪽 위 앞
+        {1.0f, 1.0f}, // 1 - 오른쪽 위 앞
+        {1.0f, 0.0f}, // 2 - 오른쪽 아래 앞
+        {0.0f, 0.0f}, // 3 - 왼쪽 아래 앞
+        {0.0f, 1.0f}, // 4 - 왼쪽 위 뒤
+        {1.0f, 1.0f}, // 5 - 오른쪽 위 뒤
+        {1.0f, 0.0f}, // 6 - 오른쪽 아래 뒤
+        {0.0f, 0.0f}  // 7 - 왼쪽 아래 뒤
+    };
+    uvIndices = indices;
 }
 
 void Mesh::Sphere(int stacks, int slices, float radius)
@@ -45,6 +57,7 @@ void Mesh::Sphere(int stacks, int slices, float radius)
     vertices.clear();
     indices.clear();
     normals.clear();
+    uvs.clear();
     colors.clear();
     constexpr float PI = 3.14159265359f;
     for (int lat = 0; lat <= stacks; ++lat) {
@@ -61,6 +74,9 @@ void Mesh::Sphere(int stacks, int slices, float radius)
             float z = radius * sinTheta * sinPhi;
             vertices.push_back(Vector3(x, y, z));
             normals.push_back(Vector3(x, y, z).Normalized());
+            float u = static_cast<float>(lon) / slices;
+            float v = static_cast<float>(lat) / stacks;
+            uvs.push_back(Vector2(u, v));
         }
     }
     for (int lat = 0; lat < stacks; ++lat)
@@ -72,4 +88,5 @@ void Mesh::Sphere(int stacks, int slices, float radius)
             indices.push_back(Triangle(current + 1, next + 1, next));
         }
     }
+    uvIndices = indices;
 }

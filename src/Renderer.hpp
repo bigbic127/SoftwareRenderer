@@ -24,7 +24,9 @@ class Renderer : public Window
         void Ready();
         void Update();
         void Render();
-        void ProcessInput(SDL_Event& event) override ;
+        void ProcessInput(SDL_Event& event) override;
+        void InputTransform(SDL_Event& event);
+        void OpenObjFile();
         void DrawClear(uint32_t color = 0xFF000000);
         void DrawGrid(int intervalW = 10, int intervalH = 10, uint32_t color = 0xFF333333);
         void DrawPixel(int x, int y, uint32_t color);
@@ -49,4 +51,8 @@ class Renderer : public Window
         Camera camera;
         RenderMode renderMode = RenderMode::Wireframe;
         bool bIsTextureMode = false;
+        bool bIsSpace = false;
+        bool bIsClicked = false;
+        Vector2 screenPos;
+        Vector3 screenOriPos;
 };
