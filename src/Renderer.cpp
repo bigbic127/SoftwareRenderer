@@ -203,6 +203,8 @@ void Renderer::ProcessInput(SDL_Event& event)
             OpenObjFile();
         else if (event.key.keysym.sym == SDLK_SPACE)
             bIsSpace = !bIsSpace;
+        else if (event.key.keysym.sym == SDLK_r)
+            camera.SetLookAt(Vector3(0.f,0.5f, 4.f), Vector3(0.f,0.f,0.f), Vector3(0.f,1.f,0.f));
         InputTransform(event);
         break;
     case SDL_KEYUP:
@@ -256,14 +258,14 @@ void Renderer::ProcessInput(SDL_Event& event)
             Vector3 rotatedOffset = transform.GetRotateAroundAxis(screenOriPos, cross, pitchAngle);
             rotatedOffset = transform.GetRotateAroundAxis(rotatedOffset, up, yawAngle);
             Vector3 cameraPosition = rotatedOffset;
-            camera.SetLookAt(cameraPosition, Vector3(0.f,0.f,0.f), Vector3(0.f,1.f,0.f));
+            camera.SetLookAt(cameraPosition, cameraTarget, Vector3(0.f,1.f,0.f));
         }
         else if (bIsMClicked)
         {
             Vector2 motion, vec;
             motion.x = event.motion.x;
             motion.y = event.motion.y;
-            vec = (motion - screenPos) * 0.005f;
+            vec = (motion - screenPos) * 0.001f;
             Vector3 up = Vector3(0.f,1.f,0.f);
             Vector3 cross =  (camera.GetTarget() - camera.GetPosition()).Normalized().Cross(up);
             Vector3 cameraPosition = cross * -vec.x  + up * vec.y + screenOriPos;
