@@ -56,6 +56,5 @@ class Renderer : public Window
         bool bIsMClicked = false;
         Vector2 screenPos;
         Vector3 screenOriPos;
-        Vector3 screenOriRot;
         Vector3 targetPos;
 };

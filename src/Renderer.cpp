@@ -221,7 +221,6 @@ void Renderer::ProcessInput(SDL_Event& event)
             screenPos.x = event.button.x;
             screenPos.y = event.button.y;
             screenOriPos = camera.GetPosition();
-            screenOriRot = camera.GetPosition();
             targetPos = camera.GetTarget();
         }
         break;
@@ -249,15 +248,15 @@ void Renderer::ProcessInput(SDL_Event& event)
             Vector2 motion, vec;
             motion.x = event.motion.x;
             motion.y = event.motion.y;
-            vec = (motion - screenPos)*-0.1f;
+            vec = (motion - screenPos)*-0.2f;
             Vector3 up = Vector3(0.f,1.f,0.f);
-            Vector3 cross =  (camera.GetTarget() - camera.GetPosition()).Normalized().Cross(up);
+            Vector3 cross =  (cameraTarget - camera.GetPosition()).Normalized().Cross(up);
             float pitchAngle = DEG2RAD(vec.y);
             float yawAngle = DEG2RAD(vec.x);
             Vector3 rotatedOffset = transform.GetRotateAroundAxis(screenOriPos, cross, pitchAngle);
             rotatedOffset = transform.GetRotateAroundAxis(rotatedOffset, up, yawAngle);
-            Vector3 cameraPosition = rotatedOffset + screenOriRot;
-            camera.SetLookAt(cameraPosition, cameraTarget, Vector3(0.f,1.f,0.f));
+            Vector3 cameraPosition = rotatedOffset;
+            camera.SetLookAt(cameraPosition, Vector3(0.f,0.f,0.f), Vector3(0.f,1.f,0.f));
         }
         else if (bIsMClicked)
         {
