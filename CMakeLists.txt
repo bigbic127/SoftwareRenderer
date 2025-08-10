@@ -19,6 +19,11 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(sdl2)
 
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_CURRENT_SOURCE_DIR}/build/$(Configuration)/SDL2.dll
+        $<TARGET_FILE_DIR:${PROJECT_NAME}>)
+
 if(APPLE)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_SOURCE_DIR}/bin)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_SOURCE_DIR}/bin)
