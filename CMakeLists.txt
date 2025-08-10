@@ -11,17 +11,21 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
 
 add_executable(${PROJECT_NAME} WIN32 ${SOURCES})
 
+include(FetchContent)
+FetchContent_Declare(
+    sdl2
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+    GIT_TAG release-2.32.8
+)
+FetchContent_MakeAvailable(sdl2)
+
 if(APPLE)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_SOURCE_DIR}/bin)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_SOURCE_DIR}/bin)
-    target_include_directories(${PROJECT_NAME} PRIVATE /opt/homebrew/include/SDL2)
-    target_link_directories(${PROJECT_NAME} PRIVATE /opt/homebrew/opt/sdl2/lib)
-    target_link_libraries(${PROJECT_NAME} PUBLIC SDL2)
+    target_link_libraries(${PROJECT_NAME} PUBLIC sdl2::SDL2)
 
 elseif(WIN32)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
-    target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/SDL2/include)
-    target_link_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/SDL2/lib/x64)
     target_link_libraries(${PROJECT_NAME} PUBLIC
         SDL2
         SDL2main
