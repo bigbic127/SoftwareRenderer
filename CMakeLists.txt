@@ -9,22 +9,29 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
 )
 
-add_executable(${PROJECT_NAME} WIN32 ${SOURCES})
+add_executable(${PROJECT_NAME} ${SOURCES})
 
 include(FetchContent)
+FetchContent_Declare(
+    gltf
+    GIT_REPOSITORY https://github.com/syoyo/tinygltf.git
+    GIT_TAG v2.9.6
+)
+FetchContent_MakeAvailable(gltf)
+set(GLTF_SRC
+    ${gltf_SOURCE_DIR}/tiny_gltf.cc
+)
+add_library(GLTF_LIB STATIC ${GLTF_SRC})
+target_include_directories(GLTF_LIB PUBLIC
+    ${gltf_SOURCE_DIR}
+)
 FetchContent_Declare(
     sdl2
     GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
     GIT_TAG release-2.32.8
-    GIT_SHALLOW TRUE
 )
 set(BUILD_SHARED_LIBS ON)
 FetchContent_MakeAvailable(sdl2)
-
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_CURRENT_SOURCE_DIR}/build/$(Configuration)/
-        $<TARGET_FILE_DIR:${PROJECT_NAME}>)
 
 if(APPLE)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_SOURCE_DIR}/bin)
@@ -36,6 +43,7 @@ elseif(WIN32)
     target_link_libraries(${PROJECT_NAME} PRIVATE
         SDL2
         SDL2main
+        GLTF_LIB
     )
 endif()
 set_target_properties(${PROJECT_NAME} PROPERTIES

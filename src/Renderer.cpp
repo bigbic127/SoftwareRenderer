@@ -451,11 +451,21 @@ void Renderer::OpenObjFile()
     {
         std::filesystem::path objPath = path;
         std::filesystem::path pngPath = path;
-        pngPath.replace_extension(".png");
-        Mesh mesh = Mesh();
-        LoadObjFile(objPath.string(), mesh);
-        LoadPngFile(pngPath.string(), mesh);
-        meshes.push_back(mesh);
+        if (objPath.extension() == ".glb")
+        {
+            vector<Mesh> rMeshes;
+            rMeshes = LoadGLTF(path.string());
+            for (Mesh mesh : rMeshes)
+                meshes.push_back(mesh);
+        }
+        else if (objPath.extension() == ".obj")
+        {
+            pngPath.replace_extension(".png");
+            Mesh mesh = Mesh();
+            LoadObjFile(objPath.string(), mesh);
+            LoadPngFile(pngPath.string(), mesh);
+            meshes.push_back(mesh);
+        }
     }
     //메쉬 스케일링
     Vector3 minBound = { FLT_MAX, FLT_MAX, FLT_MAX };

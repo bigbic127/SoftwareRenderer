@@ -30,8 +30,10 @@ std::vector<std::filesystem::path> FileDialog::ShowFileDialog(bool isSave)
         }
         const COMDLG_FILTERSPEC rgSpec[] =
         {
-            { L"All Supported Files (*.obj)", L"*.obj" },
-            { L"OBJ Files (*.obj)", L"*.obj"}
+            { L"All Supported Files (*.obj, *.glb)", L"*.obj; *.glb"},
+            { L"OBJ Files (*.obj)", L"*.obj"},
+            { L"GLTF Files (*.glb)", L"*.glb"}
+
         };
         pFileOpen->SetFileTypes(ARRAYSIZE(rgSpec), rgSpec);
 

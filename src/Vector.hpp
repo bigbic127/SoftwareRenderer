@@ -1,6 +1,9 @@
 #pragma once
 
 #include <cmath>
+#include <string>
+
+class Matrix4x4;
 
 class Vector2
 {
@@ -109,6 +112,15 @@ class Vector4
         }
     public:
         float x, y, z, w;
+};
+
+class Vector4i
+{
+    public:
+        Vector4i() : x(0), y(0), z(0), w(1){}
+        Vector4i(int _x, int _y, int _z, int _w) : x(_x), y(_y), z(_z), w(_w){}
+    public:
+        int x, y, z, w;
 };
 
 class Triangle
