@@ -27,7 +27,8 @@ class Camera
         Vector3 GetDirection() {return (target - eye).Normalized();}
         Vector3 GetPosition() const {return eye;}
         Vector3 GetTarget() const {return target;}
-        vector<Vector4> GetFrustumPlanes(const Matrix4x4& m) {return ExtractFrustumPlanes(m);}
+        vector<Vector4> GetFrustumPlanes() {return ExtractFrustumPlanes();}
+
     private:
         Matrix4x4 LookAt()
         {
@@ -63,8 +64,9 @@ class Camera
             return mat;
         }
         //절두체 6면
-        vector<Vector4> ExtractFrustumPlanes(const Matrix4x4& m)
+        vector<Vector4> ExtractFrustumPlanes()
         {
+            Matrix4x4 m;
             planes.clear();
             planes.push_back((m.GetRow(3) + m.GetRow(0)).Normalized()); // Left
             planes.push_back((m.GetRow(3) - m.GetRow(0)).Normalized()); // Right

@@ -6,7 +6,7 @@
 
 using namespace std;
 
-struct Bone {
+struct Joint {
     std::string name;
     int parent = -1;
     std::vector<int> children;

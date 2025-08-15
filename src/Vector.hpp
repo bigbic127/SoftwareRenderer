@@ -11,6 +11,10 @@ class Vector2
         Vector2() : x(0), y(0){}
         Vector2(float _x, float _y) : x(_x), y(_y){}
         Vector2 Vector2i() {return Vector2(int(x), int(y));}
+        Vector2 operator+(const Vector2& vec) const
+        {
+            return Vector2(x + vec.x, y + vec.y);
+        }
         Vector2 operator-(const Vector2& vec) const
         {
             return Vector2(x - vec.x, y - vec.y);
@@ -83,11 +87,21 @@ class Vector3
         float x, y, z;
 };
 
+class Vector3i
+{
+    public:
+        Vector3i() : a(0), b(0), c(0) {}
+        Vector3i(int _a, int _b, int _c) : a(_a), b(_b), c(_c) {}
+    public:
+        int a, b, c;
+};
+
 class Vector4
 {
     public:
         Vector4() : x(0), y(0), z(0), w(1){}
         Vector4(float _x, float _y, float _z, float _w) : x(_x), y(_y), z(_z), w(_w){}
+        Vector4(Vector3 &vec) : x(vec.x), y(vec.y), z(vec.z), w(1.0f){}
         Vector4 operator+(const Vector4& vec) const
         {
             return Vector4(x + vec.x, y + vec.y, z + vec.z, w + vec.w);
@@ -96,13 +110,17 @@ class Vector4
         {
             return Vector4(x - vec.x, y - vec.y, z - vec.z, w - vec.w);
         }
+        Vector4 operator*(float scalar) const
+        {
+            return Vector4(x * scalar, y * scalar, z * scalar, w * scalar);
+        }
         Vector4 operator/(float scalar) const
         {
             return Vector4(x / scalar, y / scalar, z / scalar, w / scalar);
         }
         float Length() const
         {
-            return std::sqrt(x*x + y*y + z*z);
+            return std::sqrt(x*x + y*y + z*z + w*w);
         }
         Vector4 Normalized() const
         {
@@ -110,6 +128,7 @@ class Vector4
             if (len == 0) return Vector4(0,0,0,0);
             return (*this) / len;
         }
+        Vector3 ToVector3() {return Vector3(x, y, z);}
     public:
         float x, y, z, w;
 };
@@ -123,11 +142,27 @@ class Vector4i
         int x, y, z, w;
 };
 
+class Vertex
+{
+    public:
+        Vertex(){}
+        Vertex(Vector4 p, Vector2 u) : pos(p), uv(u){}
+    public:
+        Vector4 pos;
+        Vector2 uv;
+
+};
+
 class Triangle
 {
     public:
-        Triangle() : a(0), b(0), c(0) {}
-        Triangle(int _a, int _b, int _c) : a(_a), b(_b), c(_c) {}
+        Triangle(){}
+        Triangle(Vertex v1, Vertex v2, Vertex v3)
+        {
+            vertices[0] = v1;
+            vertices[1] = v2;
+            vertices[2] = v3;
+        }
     public:
-        int a, b, c;
+        Vertex vertices[3];
 };

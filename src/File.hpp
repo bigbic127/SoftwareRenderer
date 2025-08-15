@@ -12,6 +12,8 @@
 #include "Mesh.hpp"
 #include "Vector.hpp"
 #include "lodepng.h"
+#include "Joint.hpp"
+#include "Node.hpp"
 
 using namespace std;
 
@@ -52,9 +54,9 @@ static void LoadObjFile(const string& path, Mesh& mesh)//, vector<Vector2D>& uvs
         return;
     }
     vector<Vector3>& vertices = mesh.GetVertices();
-    vector<Triangle>& indices = mesh.GetIndices();
-    vector<Triangle>& normalIndices = mesh.GetNormalIndices();
-    vector<Triangle>& uvIndices = mesh.GetUVIndices();
+    vector<Vector3i>& indices = mesh.GetIndices();
+    vector<Vector3i>& normalIndices = mesh.GetNormalIndices();
+    vector<Vector3i>& uvIndices = mesh.GetUVIndices();
     vector<Vector3>& normals = mesh.GetNormals();
     vector<Vector2>& uvs = mesh.GetUVs();
 
@@ -92,7 +94,7 @@ static void LoadObjFile(const string& path, Mesh& mesh)//, vector<Vector2D>& uvs
         }
         else if (prefix == "f")
         {
-            Triangle f;
+            Vector3i f;
             if (line.find('/') != std::string::npos)
             {
                 int vIdx[3], vtIdx[3], vnIdx[3];
@@ -100,9 +102,9 @@ static void LoadObjFile(const string& path, Mesh& mesh)//, vector<Vector2D>& uvs
                 for (int i = 0; i < 3; ++i) {
                     iss >> vIdx[i] >> slash >> vtIdx[i] >> slash >> vnIdx[i];
                 }
-                Triangle vertex;
-                Triangle normal;
-                Triangle uv;
+                Vector3i vertex;
+                Vector3i normal;
+                Vector3i uv;
                 for (int i = 0; i < 3; ++i) {
                     //v.position = positions[vIdx[i] - 1];
                     //v.uv       = texcoords[vtIdx[i] - 1];
@@ -155,7 +157,15 @@ std::vector<Mesh> LoadGLTF(std::string filename)
     bool res = loader.LoadBinaryFromFile(&model, &err, &warn, filename.c_str());//LoadASCIIFromFile
     if (!res)
         return result;
-
+    for (const auto& node : model.nodes) {
+        Node _node;
+        if (!node.name.empty()) _node.name = node.name;
+        if (!node.children.empty()) _node.children = node.children;
+        if (!node.translation.empty()) _node.translation = Vector3(node.translation[0], node.translation[1], node.translation[2]);
+        if (!node.rotation.empty()) _node.rotation = Vector4(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]);
+        if (!node.scale.empty()) _node.scale = Vector3(node.scale[0], node.scale[1], node.scale[2]);
+        //if (!node.matrix.empty()) _node.matrix = node.matrix;
+    }
     for (const auto& mesh : model.meshes)
     {
         std::cout << "Processing Mesh: " << (mesh.name.empty() ? "(unnamed)" : mesh.name) << std::endl;
@@ -163,9 +173,9 @@ std::vector<Mesh> LoadGLTF(std::string filename)
         {
             Mesh _mesh;
             vector<Vector3>& vertices = _mesh.GetVertices();
-            vector<Triangle>& indices = _mesh.GetIndices();
-            vector<Triangle>& normalIndices = _mesh.GetNormalIndices();
-            vector<Triangle>& uvIndices = _mesh.GetUVIndices();
+            vector<Vector3i>& indices = _mesh.GetIndices();
+            vector<Vector3i>& normalIndices = _mesh.GetNormalIndices();
+            vector<Vector3i>& uvIndices = _mesh.GetUVIndices();
             vector<Vector3>& normals = _mesh.GetNormals();
             vector<Vector2>& uvs = _mesh.GetUVs();
             vector<Vector4>& weights = _mesh.GetWeights();
@@ -196,26 +206,26 @@ std::vector<Mesh> LoadGLTF(std::string filename)
                 const auto& bufferView = model.bufferViews[accessor.bufferView];
                 const auto& buffer = model.buffers[bufferView.buffer];
                 const void* index_data_ptr = &buffer.data[bufferView.byteOffset + accessor.byteOffset];
-                size_t triangle_count = accessor.count / 3;
-                indices.reserve(triangle_count);
+                size_t Vector3i_count = accessor.count / 3;
+                indices.reserve(Vector3i_count);
                 switch (accessor.componentType) {
                     case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE: {
                         const uint8_t* data = static_cast<const uint8_t*>(index_data_ptr);
-                        for (size_t i = 0; i < triangle_count; ++i) {
+                        for (size_t i = 0; i < Vector3i_count; ++i) {
                             indices.push_back({(int)data[i * 3 + 0], (int)data[i * 3 + 1], (int)data[i * 3 + 2]});
                         }
                         break;
                     }
                     case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT: {
                         const uint16_t* data = static_cast<const uint16_t*>(index_data_ptr);
-                        for (size_t i = 0; i < triangle_count; ++i) {
+                        for (size_t i = 0; i < Vector3i_count; ++i) {
                             indices.push_back({(int)data[i * 3 + 0], (int)data[i * 3 + 1], (int)data[i * 3 + 2]});
                         }
                         break;
                     }
                     case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT: {
                         const uint32_t* data = static_cast<const uint32_t*>(index_data_ptr);
-                        for (size_t i = 0; i < triangle_count; ++i) {
+                        for (size_t i = 0; i < Vector3i_count; ++i) {
                             indices.push_back({(int)data[i * 3 + 0], (int)data[i * 3 + 1], (int)data[i * 3 + 2]});
                         }
                         break;
@@ -284,5 +294,71 @@ std::vector<Mesh> LoadGLTF(std::string filename)
             result.push_back(_mesh);
         }
     }
+    for (const auto& anim : model.animations)
+    {
+        Animation animation;
+        animation.name = anim.name;
+        std::cout << "========================================" << std::endl;
+        std::cout << "Processing Animation: " << (animation.name.empty() ? "(unnamed)" : animation.name) << std::endl;
+        // 1. 먼저 모든 샘플러 데이터를 파싱해서 저장합니다.
+        //    여러 채널이 하나의 샘플러를 공유할 수 있기 때문입니다.
+        std::map<int, AnimationSampler> parsedSamplers;
+        for (size_t i = 0; i < anim.samplers.size(); ++i) {
+            const auto& sampler = anim.samplers[i];
+            AnimationSampler animSampler;
+            animSampler.interpolation = sampler.interpolation;
+
+            // Input Accessor (시간 축)
+            const auto& inputAccessor = model.accessors[sampler.input];
+            const auto& inputBufferView = model.bufferViews[inputAccessor.bufferView];
+            const auto& inputBuffer = model.buffers[inputBufferView.buffer];
+            const float* timestamps = reinterpret_cast<const float*>(&inputBuffer.data[inputBufferView.byteOffset + inputAccessor.byteOffset]);
+
+            // Output Accessor (값: 위치, 회전, 크기)
+            const auto& outputAccessor = model.accessors[sampler.output];
+            const auto& outputBufferView = model.bufferViews[outputAccessor.bufferView];
+            const auto& outputBuffer = model.buffers[outputBufferView.buffer];
+            const void* values_ptr = &outputBuffer.data[outputBufferView.byteOffset + outputAccessor.byteOffset];
+
+            if (outputAccessor.type == TINYGLTF_TYPE_VEC3) { // Translation 또는 Scale
+                const float* values = static_cast<const float*>(values_ptr);
+                for (size_t k = 0; k < inputAccessor.count; ++k) {
+                    animSampler.translationKeys.push_back({
+                        timestamps[k],
+                        {values[k * 3 + 0], values[k * 3 + 1], values[k * 3 + 2]}
+                    });
+                }
+            } else if (outputAccessor.type == TINYGLTF_TYPE_VEC4) { // Rotation (Quaternion)
+                const float* values = static_cast<const float*>(values_ptr);
+                for (size_t k = 0; k < inputAccessor.count; ++k) {
+                    animSampler.rotationKeys.push_back({
+                        timestamps[k],
+                        {values[k * 4 + 0], values[k * 4 + 1], values[k * 4 + 2], values[k * 4 + 3]}
+                    });
+                }
+            }
+            parsedSamplers[i] = animSampler;
+        }
+        // 2. 채널을 순회하며 위에서 파싱한 샘플러와 연결합니다.
+        for (const auto& channel : anim.channels) {
+            AnimationChannel animChannel;
+            animChannel.targetNode = channel.target_node;
+            animChannel.targetPath = channel.target_path;
+            
+            // targetPath에 따라 샘플러의 키프레임 종류를 결정합니다.
+            AnimationSampler sourceSampler = parsedSamplers[channel.sampler];
+            if (channel.target_path == "translation") {
+                 animChannel.sampler.translationKeys = sourceSampler.translationKeys;
+            } else if (channel.target_path == "rotation") {
+                 animChannel.sampler.rotationKeys = sourceSampler.rotationKeys;
+            } else if (channel.target_path == "scale") {
+                // scale도 VEC3를 사용하므로 translationKeys에서 가져옵니다.
+                 animChannel.sampler.scaleKeys = sourceSampler.translationKeys;
+            }
+            animation.channels.push_back(animChannel);
+        }
+        std::cout << "  - Found " << animation.channels.size() << " channels." << std::endl;
+    }
+    
     return result;
 }

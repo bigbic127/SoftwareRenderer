@@ -84,8 +84,8 @@ void Mesh::Sphere(int stacks, int slices, float radius)
         for (int lon = 0; lon < slices; ++lon) {
             int current = lat * (slices + 1) + lon;
             int next = current + slices + 1;
-            indices.push_back(Triangle(current, current + 1, next));
-            indices.push_back(Triangle(current + 1, next + 1, next));
+            indices.push_back(Vector3i(current, current + 1, next));
+            indices.push_back(Vector3i(current + 1, next + 1, next));
         }
     }
     uvIndices = indices;

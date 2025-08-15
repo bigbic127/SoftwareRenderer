@@ -4,6 +4,7 @@
 #include "Camera.hpp"
 #include "File.hpp"
 #include "FileDialog.hpp"
+#include "Util.hpp"
 #include <cmath>
 
 using namespace std;
@@ -32,6 +33,7 @@ void Renderer::Ready()
     else
         Quit();
     Mesh mesh;
+    //mesh.GetTransform().SetPosition(Vector3(2,0,0));
     meshes.clear();
     meshes.push_back(mesh);
     //카메라 파마리터 변경
@@ -68,16 +70,101 @@ void Renderer::Render()
     for (Mesh&mesh : meshes)
     {
         vector<Vector3> vertices = mesh.GetVertices();
-        vector<Triangle> indices = mesh.GetIndices();
+        vector<Vector3i> indices = mesh.GetIndices();
         vector<Vector2> uvs = mesh.GetUVs();
-        vector<Triangle> uvIndices = mesh.GetUVIndices();
+        vector<Vector3i> uvIndices = mesh.GetUVIndices();
         vector<Vector3> worldVertices = mesh.GetWorldVertices();
         vector<uint32_t> colors = mesh.GetColors();
+        vector<Triangle> triangles = mesh.GetTriangle();
+        triangles.clear();
         Vector3 cameraPosition = camera.GetPosition();
+        vector<Vector4> planes = camera.GetFrustumPlanes();
         vector<Vector3>& projectionPoints = mesh.GetPojectionPoint();
         //뷰행렬로 변환
         projectionPoints.clear();
         worldVertices.clear();
+        /* 클리핑
+        for (int i = 0; i < indices.size(); i++)
+        {
+            Vector3i& tri = indices[i];
+            int a = tri.a;
+            int b = tri.b;
+            int c = tri.c;
+            Vector4 v1 = Vector4(vertices[a]);
+            Vector4 v2 = Vector4(vertices[b]);
+            Vector4 v3 = Vector4(vertices[c]);
+            v1 = camera.GetProjectionMatrix() * mesh.GetTransform().GetMatrix() * v1;
+            v2 = camera.GetProjectionMatrix() * mesh.GetTransform().GetMatrix() * v2;
+            v3 = camera.GetProjectionMatrix() * mesh.GetTransform().GetMatrix() * v3;
+            Vector3i& triuv = uvIndices[i];
+            int _ua = triuv.a;
+            int _ub = triuv.b;
+            int _uc = triuv.c;
+            Vector2 uv1 = uvs[_ua];
+            Vector2 uv2 = uvs[_ub];
+            Vector2 uv3 = uvs[_uc];
+            Vertex vt1 = Vertex(v1, uv1);
+            Vertex vt2 = Vertex(v2, uv2);
+            Vertex vt3 = Vertex(v3, uv3);
+            vector<Vertex> vtx = {vt1, vt2, vt3};
+            //절두체 컬링, 클리핑
+            for (Vector4& plane : planes)
+            {
+                auto dist = [&](const Vertex& v) {
+                    return plane.x * v.pos.x +
+                        plane.y * v.pos.y +
+                        plane.z * v.pos.z +
+                        plane.w * v.pos.w;
+                };
+                std::vector<Vertex> output;
+                for (size_t i = 0; i < vtx.size(); ++i)
+                {
+                    const Vertex& curr = vtx[i];
+                    const Vertex& prev = vtx[(i + vtx.size() - 1) % vtx.size()];
+                    float distCurr = dist(curr);
+                    float distPrev = dist(prev);
+                    bool currInside = distCurr >= 0;
+                    bool prevInside = distPrev >= 0;
+                    if (prevInside && currInside)
+                        output.push_back(curr);
+                    else if (prevInside && !currInside)
+                        output.push_back(IntersectVertex(prev, curr, plane));
+                    else if (!prevInside && currInside)
+                    {
+                        output.push_back(IntersectVertex(prev, curr, plane));
+                        output.push_back(curr);
+                    }
+                }
+                vector<Triangle>tr = TriangulatePolygon(output);
+                triangles.insert(triangles.end(), tr.begin(), tr.end());
+            }
+        }
+        */
+        for(Triangle& tri:triangles)
+        {
+            for (Vertex& vertice:tri.vertices)
+            {
+                Vector4& v = vertice.pos;
+                Vector3 p = Vector3(v.x/v.w , v.y/v.w, v.z/v.w);//NDC 좌표계로 변환
+                //화면 중앙으로 위치
+                float screenX = (p.x * 0.5f + 0.5f) * width;
+                float screenY = (1.0f - (p.y * 0.5f + 0.5f)) * height;
+                float zdepth = p.z * 0.5f + 0.5f;
+                v = Vector4(screenX, screenY, zdepth, 1.0f);
+            }           
+            Vector3 v1 = tri.vertices[0].pos.ToVector3();
+            Vector3 v2 = tri.vertices[1].pos.ToVector3();
+            Vector3 v3 = tri.vertices[2].pos.ToVector3();
+            Vector2 uv1 = tri.vertices[0].uv;
+            Vector2 uv2 = tri.vertices[1].uv;
+            Vector2 uv3 = tri.vertices[2].uv;
+            DrawLine(v1.Vector2i(), v2.Vector2i(), 0xFFFF0000);
+            DrawLine(v2.Vector2i(), v3.Vector2i(), 0xFFFF0000);
+            DrawLine(v1.Vector2i(), v3.Vector2i(), 0xFFFF0000);
+            DrawPoint(v1.x, v1.y, 6,6,0xFF000000);
+            DrawPoint(v2.x, v2.y, 6,6,0xFF000000);
+            DrawPoint(v3.x, v3.y, 6,6,0xFF000000);
+        }
         for(Vector3& vertice:vertices)
         {
             //행렬 변환 (world * view * projection) -> clip -> NDC(-1 ~ 1 정규화)
@@ -100,7 +187,7 @@ void Renderer::Render()
             int colorIndex = 0;
             for (int i = 0; i < indices.size(); i++)
             {
-                Triangle& tri = indices[i];
+                Vector3i& tri = indices[i];
                 int a = tri.a;
                 int b = tri.b;
                 int c = tri.c;
@@ -108,7 +195,7 @@ void Renderer::Render()
                 Vector3 v2 = projectionPoints[b];
                 Vector3 v3 = projectionPoints[c];
                 //UV z값 보간 (view행렬의 w값)
-                Triangle& triuv = uvIndices[i];
+                Vector3i& triuv = uvIndices[i];
                 int _ua = triuv.a;
                 int _ub = triuv.b;
                 int _uc = triuv.c;
@@ -149,7 +236,7 @@ void Renderer::Render()
         else if (renderMode == RenderMode::Wireframe)
         {
         //선그리기
-            for (Triangle& tri: indices)
+            for (Vector3i& tri: indices)
             {
                 int a = tri.a;
                 int b = tri.b;

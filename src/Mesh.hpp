@@ -13,11 +13,12 @@ class Mesh
     public:
         Mesh() {Cube();}
         vector<Vector3>& GetVertices() {return vertices;}
-        vector<Triangle>& GetIndices() {return indices;}
-        vector<Triangle>& GetNormalIndices() {return normalIndices;}
-        vector<Triangle>& GetUVIndices() {return uvIndices;}
+        vector<Vector3i>& GetIndices() {return indices;}
+        vector<Vector3i>& GetNormalIndices() {return normalIndices;}
+        vector<Vector3i>& GetUVIndices() {return uvIndices;}
         vector<Vector3>& GetNormals() {return normals;}
         vector<Vector2>& GetUVs() {return uvs;}
+        vector<Triangle>& GetTriangle() {return triangles;}
         vector<Vector4>& GetWeights() {return Weights;}
         vector<Vector4i>& GetJoints() {return joints;}
         vector<Animation>& GetAnimation() {return animation;}
@@ -35,11 +36,11 @@ class Mesh
         std::string nodeName;
         int chNode, pNode;
         vector<Vector3> vertices;
-        vector<Triangle> indices;
+        vector<Vector3i> indices;
         vector<Vector3> normals;
         vector<Vector2> uvs;
-        vector<Triangle> normalIndices;
-        vector<Triangle> uvIndices;
+        vector<Vector3i> normalIndices;
+        vector<Vector3i> uvIndices;
         vector<uint32_t> colors;
         Transform transform;
         vector<Vector3> projectionPoints;
@@ -49,4 +50,5 @@ class Mesh
         vector<Vector4i> joints;
         vector<Vector4> Weights;
         vector<Animation> animation;
+        vector<Triangle> triangles;
 };
