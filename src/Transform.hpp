@@ -14,6 +14,8 @@ class Transform
         void SetPosition(Vector3 pos) {this->position = pos;}
         void SetRotation(Vector3 rot) {this->rotation = rot;}
         void SetScale(Vector3 s) {this->scale = s;}
+        void SetQuterian(Vector4 q) {this->quterian = q;}
+
         Vector3 GetRotateAroundAxis(const Vector3& v, const Vector3& axis, float angleRad)
         {
             Vector3 k = axis.Normalized();
@@ -65,5 +67,6 @@ class Transform
     public:
         Vector3 position;
         Vector3 rotation;
+        Vector4 quterian;
         Vector3 scale = Vector3(1.0f, 1.0f ,1.0f);
 };

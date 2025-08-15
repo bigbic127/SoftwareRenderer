@@ -141,28 +141,3 @@ class Vector4i
     public:
         int x, y, z, w;
 };
-
-class Vertex
-{
-    public:
-        Vertex(){}
-        Vertex(Vector4 p, Vector2 u) : pos(p), uv(u){}
-    public:
-        Vector4 pos;
-        Vector2 uv;
-
-};
-
-class Triangle
-{
-    public:
-        Triangle(){}
-        Triangle(Vertex v1, Vertex v2, Vertex v3)
-        {
-            vertices[0] = v1;
-            vertices[1] = v2;
-            vertices[2] = v3;
-        }
-    public:
-        Vertex vertices[3];
-};

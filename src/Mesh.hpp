@@ -2,11 +2,43 @@
 
 #include <vector>
 #include <string>
+#include "Node.hpp"
 #include "Vector.hpp"
 #include "Transform.hpp"
 #include "Joint.hpp"
+#include "Animation.hpp"
 
 using namespace std;
+
+
+class Vertex
+{
+    public:
+        Vertex(){}
+        Vertex(Vector4 p, Vector2 u) : pos(p), uv(u){}
+    public:
+        Vector4 pos;
+        Vector4 nor;
+        Vector2 uv;
+        vector<int> jointIndices;
+        vector<float> weights;
+
+};
+
+class Triangle
+{
+    public:
+        Triangle(){}
+        Triangle(Vertex v1, Vertex v2, Vertex v3)
+        {
+            vertices[0] = v1;
+            vertices[1] = v2;
+            vertices[2] = v3;
+        }
+    public:
+        Vertex vertices[3];
+};
+
 
 class Mesh
 {
@@ -19,8 +51,7 @@ class Mesh
         vector<Vector3>& GetNormals() {return normals;}
         vector<Vector2>& GetUVs() {return uvs;}
         vector<Triangle>& GetTriangle() {return triangles;}
-        vector<Vector4>& GetWeights() {return Weights;}
-        vector<Vector4i>& GetJoints() {return joints;}
+        vector<Joint>& GetJoints() {return joints;}
         vector<Animation>& GetAnimation() {return animation;}
         int& GetUVsWidth() {return texWidth;}
         int& GetUVsHeight() {return texHeight;}
@@ -32,9 +63,8 @@ class Mesh
         void Cube();
         void Sphere(int stacks = 32, int slices = 32, float radius = 1.0f);
     private:
-        std::string meshName;
-        std::string nodeName;
-        int chNode, pNode;
+        Node node;
+        vector<Triangle> triangles;
         vector<Vector3> vertices;
         vector<Vector3i> indices;
         vector<Vector3> normals;
@@ -47,8 +77,6 @@ class Mesh
         vector<Vector3> worldVertices;
         vector<uint32_t> textures;
         int texWidth, texHeight;
-        vector<Vector4i> joints;
-        vector<Vector4> Weights;
+        vector<Joint> joints;
         vector<Animation> animation;
-        vector<Triangle> triangles;
 };

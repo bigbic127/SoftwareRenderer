@@ -161,9 +161,9 @@ std::vector<Mesh> LoadGLTF(std::string filename)
         Node _node;
         if (!node.name.empty()) _node.name = node.name;
         if (!node.children.empty()) _node.children = node.children;
-        if (!node.translation.empty()) _node.translation = Vector3(node.translation[0], node.translation[1], node.translation[2]);
-        if (!node.rotation.empty()) _node.rotation = Vector4(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]);
-        if (!node.scale.empty()) _node.scale = Vector3(node.scale[0], node.scale[1], node.scale[2]);
+        if (!node.translation.empty()) _node.transform.SetPosition(Vector3(node.translation[0], node.translation[1], node.translation[2]));
+        if (!node.rotation.empty()) _node.transform.SetQuterian(Vector4(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]));
+        if (!node.scale.empty()) _node.transform.SetScale(Vector3(node.scale[0], node.scale[1], node.scale[2]));
         //if (!node.matrix.empty()) _node.matrix = node.matrix;
     }
     for (const auto& mesh : model.meshes)
@@ -178,8 +178,8 @@ std::vector<Mesh> LoadGLTF(std::string filename)
             vector<Vector3i>& uvIndices = _mesh.GetUVIndices();
             vector<Vector3>& normals = _mesh.GetNormals();
             vector<Vector2>& uvs = _mesh.GetUVs();
-            vector<Vector4>& weights = _mesh.GetWeights();
-            vector<Vector4i>& joints = _mesh.GetJoints();
+            vector<Vector4> weights;
+            vector<Vector4i> joints;
             vertices.clear();
             indices.clear();
             normalIndices.clear();
