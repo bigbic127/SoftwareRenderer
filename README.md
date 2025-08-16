@@ -14,7 +14,7 @@
   [SDL2(Simple DirectMedia Layer)](https://www.libsdl.org/) 윈도우 창 생성, 이벤트 처리 및 프레임버퍼 출력을 담당합니다.
 
 - **직접 구현한 렌더링 파이프라인**
-  - 모델 로딩 (OBJ, glTF)
+  - 모델 로딩 (OBJ, glTF(https://github.com/syoyo/tinygltf/))
   - 모델/뷰/투영 변환
   - 바리센트릭 좌표 기반 삼각형 래스터라이제이션
   - 깊이 테스트(Z-buffer)

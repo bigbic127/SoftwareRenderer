@@ -2,7 +2,8 @@
 
 void Mesh::Cube()
 {
-    // 정점버퍼 구조
+    triangles.clear();
+    vertex.clear();
     vertices.clear();
     indices.clear();
     uvs.clear();
@@ -49,10 +50,8 @@ void Mesh::Cube()
         {1.0f, 0.0f}, // 6 - 오른쪽 아래 뒤
         {0.0f, 0.0f}  // 7 - 왼쪽 아래 뒤
     };
-
     // Triangle 구조
     Triangle tri;
-    triangles.clear();
     // 앞
     tri.vertices[0].pos = Vector4(-1, 1, -1, 1.0f);
     tri.vertices[1].pos = Vector4(1, -1, -1, 1.0f);
@@ -143,11 +142,20 @@ void Mesh::Cube()
     tri.vertices[1].uv = Vector2(1.0f, 1.0f);
     tri.vertices[2].uv = Vector2(0.0f, 1.0f);
     triangles.push_back(tri);
+    //Vertex 구조
+    for (size_t i = 0; i < vertices.size(); i++)
+    {
+        Vertex v;
+        v.pos = Vector4(vertices[i]);
+        v.uv = uvs[i];
+        vertex.push_back(v);
+    }
 }
 
 void Mesh::Sphere(int stacks, int slices, float radius)
 {
     triangles.clear();
+    vertex.clear();
     vertices.clear();
     indices.clear();
     uvs.clear();
@@ -199,5 +207,13 @@ void Mesh::Sphere(int stacks, int slices, float radius)
         tri.vertices[1].uv = uv2;
         tri.vertices[2].uv = uv3;
         triangles.push_back(tri);
+    }
+    //Vertex 구조
+    for (size_t i = 0; i < vertices.size(); i++)
+    {
+        Vertex v;
+        v.pos = Vector4(vertices[i]);
+        v.uv = uvs[i];
+        vertex.push_back(v);
     }
 }

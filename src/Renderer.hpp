@@ -7,6 +7,13 @@
 
 using namespace std;
 
+enum class RenderStruct 
+{
+    Vertex,
+    Indices,
+    Triangle
+};
+
 enum class RenderMode 
 {
     Wireframe,   // 와이어프레임 그리기
@@ -38,8 +45,6 @@ class Renderer : public Window
         uint32_t DrawTexture(float u, float v, Mesh& mesh);
         void SetRenderMode(RenderMode render) {renderMode = render;}
         RenderMode GetRenderMode() const{return renderMode;}
-        bool IsTri() {return bIsTri;}
-        void SetTri(bool b) {bIsTri = b;}
     protected:
         uint32_t ColorToOx(float z);
     private:
@@ -56,5 +61,5 @@ class Renderer : public Window
         Vector2 screenPos;
         Vector3 screenOriPos;
         Vector3 targetPos;
-        bool bIsTri = false;
+        RenderStruct renderStruct = RenderStruct::Indices;
 };

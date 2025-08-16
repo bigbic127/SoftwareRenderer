@@ -54,12 +54,17 @@ static void LoadObjFile(const string& path, Mesh& mesh)//, vector<Vector2D>& uvs
         return;
     }
     vector<Triangle> triangles;
-    vector<Vector3> normals;
     vector<Vector3>& vertices = mesh.GetVertices();
     vector<Vector3i>& indices = mesh.GetIndices();
+    vector<Vector3>& normals = mesh.GetNormals();
     vector<Vector2>& uvs = mesh.GetUVs();
+    vector<Vertex>& vertex = mesh.GetVertex();
+    vector<Vector3i> indices_nor;
+    vector<Vector3i> indices_uv;
+    
     vertices.clear();
     indices.clear();
+    normals.clear();
     uvs.clear();
 
     string line;
@@ -97,45 +102,44 @@ static void LoadObjFile(const string& path, Mesh& mesh)//, vector<Vector2D>& uvs
                     iss >> vIdx[i] >> slash >> vtIdx[i] >> slash >> vnIdx[i];
                 }
                 Triangle tri;
-                Vector3i vertex;
+                Vector3i point;
                 Vector3i normal;
                 Vector3i uv;
                 for (int i = 0; i < 3; ++i) {
-                    //v.position = positions[vIdx[i] - 1];
-                    //v.uv       = texcoords[vtIdx[i] - 1];
-                    //v.normal   = normals[vnIdx[i] - 1];
                     int v = vIdx[i] - 1;
                     int n = vnIdx[i] - 1;
                     int u = vtIdx[i] - 1;
                     if (i == 0)
                     {
-                        vertex.a = v;
+                        point.a = v;
                         normal.a = n;
                         uv.a = u;
                     }
                     else if (i == 1)
                     {
-                        vertex.b = v;
+                        point.b = v;
                         normal.b = n;
                         uv.b = u;
                     }
                     else
                     {
-                        vertex.c = v;
+                        point.c = v;
                         normal.c = n;
                         uv.c = u;
                     }
                 }
-                indices.push_back(vertex);
-                tri.vertices[0].pos = Vector4(vertices[vertex.a]);
-                tri.vertices[1].pos = Vector4(vertices[vertex.b]);
-                tri.vertices[2].pos = Vector4(vertices[vertex.c]);
+                indices.push_back(point);
+                indices_nor.push_back(normal);
+                indices_uv.push_back(uv);
+                tri.vertices[0].pos = Vector4(vertices[point.a]);
+                tri.vertices[1].pos = Vector4(vertices[point.b]);
+                tri.vertices[2].pos = Vector4(vertices[point.c]);
                 tri.vertices[0].nor = Vector4(normals[normal.a], 0.0f);
                 tri.vertices[1].nor = Vector4(normals[normal.b], 0.0f);
                 tri.vertices[2].nor = Vector4(normals[normal.c], 0.0f);
                 tri.vertices[0].uv = uvs[uv.a];
                 tri.vertices[1].uv = uvs[uv.b];
-                tri.vertices[2].uv = uvs[uv.c];        
+                tri.vertices[2].uv = uvs[uv.c];
                 triangles.push_back(tri);
 
             }else
@@ -155,6 +159,40 @@ static void LoadObjFile(const string& path, Mesh& mesh)//, vector<Vector2D>& uvs
         }
     }
     mesh.SetTriangles(triangles);
+    //indices에 맞게 UV,Normal 수정
+    vector<Vector3> newNormals;
+    vector<Vector2> newuvs;
+    newNormals.resize(vertices.size());
+    newuvs.resize(vertices.size());
+    for (size_t i = 0; i < indices.size(); i++)
+    {
+        Vector3i iv = indices[i];
+        Vector3i in = indices_nor[i];
+        Vector3i iu = indices_uv[i];
+        Vector3 nn1 = normals[in.a];
+        Vector3 nn2 = normals[in.b];
+        Vector3 nn3 = normals[in.c];
+        Vector2 un1 = uvs[iu.a];
+        Vector2 un2 = uvs[iu.b];
+        Vector2 un3 = uvs[iu.c];
+        newNormals[iv.a] = nn1;
+        newNormals[iv.b] = nn2;
+        newNormals[iv.c] = nn3;
+        newuvs[iv.a] = un1;
+        newuvs[iv.b] = un2;
+        newuvs[iv.c] = un3;
+    }
+    normals = newNormals;
+    uvs = newuvs;
+    //Vertex 구조
+    for (size_t i = 0; i < vertices.size(); i++)
+    {
+        Vertex v;
+        v.pos = Vector4(vertices[i]);
+        v.nor = Vector4(normals[i], 0.0f);
+        v.uv = uvs[i];
+        vertex.push_back(v);
+    }
 }
 
 
@@ -185,11 +223,13 @@ std::vector<Mesh> LoadGLTF(std::string filename)
             Mesh _mesh;
             vector<Vector3>& vertices = _mesh.GetVertices();
             vector<Vector3i>& indices = _mesh.GetIndices();
+            vector<Vector3>& normals = _mesh.GetNormals();
             vector<Vector2>& uvs = _mesh.GetUVs();
+            vector<Vertex>& vertex = _mesh.GetVertex();
             vertices.clear();
             indices.clear();
             uvs.clear();
-            vector<Vector3> normals;
+            vertex.clear();
             vector<Vector4> weights;
             vector<Vector4i> joints;
 
@@ -294,6 +334,17 @@ std::vector<Mesh> LoadGLTF(std::string filename)
                 for (size_t v = 0; v < accessor.count; ++v) {
                     weights.push_back({data[v * 4 + 0], data[v * 4 + 1], data[v * 4 + 2], data[v * 4 + 3]});
                 }
+            }
+            // Vertex 구조
+            for (size_t i = 0; i < vertices.size(); i++)
+            {
+                Vertex _v;                
+                _v.pos = Vector4(vertices[i]);
+                _v.nor = Vector4(normals[i], 0.0f);
+                _v.uv = uvs[i];
+                _v.jointIndices = joints[i];
+                _v.weights = weights[i];
+                vertex.push_back(_v);
             }
             // Triangle 구조
             vector<Triangle> triangles;
