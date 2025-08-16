@@ -76,7 +76,6 @@ void Renderer::Render()
         {
             vector<Vertex>& vertex = mesh.GetVertex();
             vector<Vector3i>& indices = mesh.GetIndices();
-            //행렬 변환
             for(Vertex& vtx: vertex)
             {
                 Vector4 v = vtx.pos;
@@ -139,9 +138,9 @@ void Renderer::Render()
         //triangle 구조
         else
         {
-            //행렬 변환
             for(Triangle& tri : triangles)
             {
+                //행렬 변환
                 for (Vertex& vertice : tri.vertices)
                 {
                     Vector4& v = vertice.pos;
@@ -149,17 +148,12 @@ void Renderer::Render()
                     Vector4 view =  camera.GetViewMatrix() * model; //뷰행렬 변환
                     Vector4 projection = camera.GetProjectionMatrix() * view; //프로젝션행렬 변환
                     Vector3 p = Vector3(projection.x/projection.w , projection.y/projection.w, projection.z/projection.w);//NDC 좌표계로 변환
-                    //화면 중앙으로 위치
                     float screenX = (p.x * 0.5f + 0.5f) * width;
                     float screenY = (1.0f - (p.y * 0.5f + 0.5f)) * height;
                     float zdepth = p.z * 0.5f + 0.5f;
                     vertice.proj_m = Vector3(model.x, model.y, model.z);
                     vertice.proj_p = Vector3(screenX, screenY, zdepth);
                 }
-            }
-            // 메쉬 그리기
-            for(Triangle& tri : triangles)
-            {
                 //backface culling 계산
                 Vector3 v1 = tri.vertices[0].proj_m;
                 Vector3 v2 = tri.vertices[1].proj_m;
