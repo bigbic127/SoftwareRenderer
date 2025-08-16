@@ -45,11 +45,8 @@ class Mesh
         Mesh() {Cube();}
         void SetTriangles(vector<Triangle> tri) {triangles = tri;}
         vector<Triangle>& GetTriangles() {return triangles;}
-        vector<Vector3>& GetVertices() {return vertices;}
-        vector<Vector3i>& GetIndices() {return indices;}
-        vector<Vector3>& GetNormals() {return normals;}
-        vector<Vector2>& GetUVs() {return uvs;}
         vector<Vertex>& GetVertex() {return vertex;}
+        vector<Vector3i>& GetIndices() {return indices;}
         Transform& GetTransform() {return transform;}
         vector<uint32_t>& GetTexture() {return textures;}
         int& GetUVsWidth() {return texWidth;}
@@ -62,11 +59,8 @@ class Mesh
         // triangle (구조 파악용)
         vector<Triangle> triangles;
         //vertex, indices buffer
-        vector<Vector3> vertices;
-        vector<Vector3i> indices;
-        vector<Vector3> normals;
-        vector<Vector2> uvs;
         vector<Vertex> vertex;
+        vector<Vector3i> indices;
         uint32_t color = 0xFF555555;
         Transform transform;
         vector<uint32_t> textures;

@@ -54,18 +54,15 @@ static void LoadObjFile(const string& path, Mesh& mesh)//, vector<Vector2D>& uvs
         return;
     }
     vector<Triangle> triangles;
-    vector<Vector3>& vertices = mesh.GetVertices();
-    vector<Vector3i>& indices = mesh.GetIndices();
-    vector<Vector3>& normals = mesh.GetNormals();
-    vector<Vector2>& uvs = mesh.GetUVs();
     vector<Vertex>& vertex = mesh.GetVertex();
+    vector<Vector3i>& indices = mesh.GetIndices();
+    vector<Vector3> vertices;
+    vector<Vector3> normals;
+    vector<Vector2> uvs;
     vector<Vector3i> indices_nor;
-    vector<Vector3i> indices_uv;
-    
-    vertices.clear();
+    vector<Vector3i> indices_uv;    
+    vertex.clear();
     indices.clear();
-    normals.clear();
-    uvs.clear();
 
     string line;
     while(getline(file, line))
@@ -221,17 +218,15 @@ std::vector<Mesh> LoadGLTF(std::string filename)
         for (const auto& primitive : mesh.primitives)
         {
             Mesh _mesh;
-            vector<Vector3>& vertices = _mesh.GetVertices();
-            vector<Vector3i>& indices = _mesh.GetIndices();
-            vector<Vector3>& normals = _mesh.GetNormals();
-            vector<Vector2>& uvs = _mesh.GetUVs();
             vector<Vertex>& vertex = _mesh.GetVertex();
-            vertices.clear();
-            indices.clear();
-            uvs.clear();
-            vertex.clear();
+            vector<Vector3i>& indices = _mesh.GetIndices();
+            vector<Vector3> vertices ;
+            vector<Vector3> normals;
+            vector<Vector2> uvs;
             vector<Vector4> weights;
             vector<Vector4i> joints;
+            vertex.clear();
+            indices.clear();
 
             std::string name = mesh.name;
             if (primitive.attributes.count("POSITION"))

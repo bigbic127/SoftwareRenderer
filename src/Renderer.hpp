@@ -10,7 +10,6 @@ using namespace std;
 enum class RenderStruct 
 {
     Vertex,
-    Indices,
     Triangle
 };
 
@@ -61,5 +60,5 @@ class Renderer : public Window
         Vector2 screenPos;
         Vector3 screenOriPos;
         Vector3 targetPos;
-        RenderStruct renderStruct = RenderStruct::Indices;
+        RenderStruct renderStruct = RenderStruct::Vertex;
 };

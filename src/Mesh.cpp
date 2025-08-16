@@ -4,9 +4,9 @@ void Mesh::Cube()
 {
     triangles.clear();
     vertex.clear();
-    vertices.clear();
     indices.clear();
-    uvs.clear();
+    vector<Vector3> vertices;
+    vector<Vector2> uvs;
     vertices =
     {
         {-1,  1, -1}, // 0 - 왼쪽 위 앞
@@ -50,6 +50,14 @@ void Mesh::Cube()
         {1.0f, 0.0f}, // 6 - 오른쪽 아래 뒤
         {0.0f, 0.0f}  // 7 - 왼쪽 아래 뒤
     };
+    //Vertex 구조
+    for (size_t i = 0; i < vertices.size(); i++)
+    {
+        Vertex v;
+        v.pos = Vector4(vertices[i]);
+        v.uv = uvs[i];
+        vertex.push_back(v);
+    }
     // Triangle 구조
     Triangle tri;
     // 앞
@@ -142,23 +150,15 @@ void Mesh::Cube()
     tri.vertices[1].uv = Vector2(1.0f, 1.0f);
     tri.vertices[2].uv = Vector2(0.0f, 1.0f);
     triangles.push_back(tri);
-    //Vertex 구조
-    for (size_t i = 0; i < vertices.size(); i++)
-    {
-        Vertex v;
-        v.pos = Vector4(vertices[i]);
-        v.uv = uvs[i];
-        vertex.push_back(v);
-    }
 }
 
 void Mesh::Sphere(int stacks, int slices, float radius)
 {
     triangles.clear();
     vertex.clear();
-    vertices.clear();
     indices.clear();
-    uvs.clear();
+    vector<Vector3> vertices;
+    vector<Vector2> uvs;
     constexpr float PI = 3.14159265359f;
     for (int lat = 0; lat <= stacks; ++lat)
     {
@@ -189,6 +189,14 @@ void Mesh::Sphere(int stacks, int slices, float radius)
             indices.push_back(Vector3i(current + 1, next + 1, next));
         }
     }
+    //Vertex 구조
+    for (size_t i = 0; i < vertices.size(); i++)
+    {
+        Vertex v;
+        v.pos = Vector4(vertices[i]);
+        v.uv = uvs[i];
+        vertex.push_back(v);
+    }
     // Triangle 구조
     for (const Vector3i& i : indices)
     {
@@ -207,13 +215,5 @@ void Mesh::Sphere(int stacks, int slices, float radius)
         tri.vertices[1].uv = uv2;
         tri.vertices[2].uv = uv3;
         triangles.push_back(tri);
-    }
-    //Vertex 구조
-    for (size_t i = 0; i < vertices.size(); i++)
-    {
-        Vertex v;
-        v.pos = Vector4(vertices[i]);
-        v.uv = uvs[i];
-        vertex.push_back(v);
     }
 }
