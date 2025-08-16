@@ -21,7 +21,8 @@ class Vertex
         Vector2 uv;
         vector<int> jointIndices;
         vector<float> weights;
-
+        Vector3 proj_m;
+        Vector3 proj_p;
 };
 
 class Triangle
@@ -44,6 +45,9 @@ class Mesh
         Mesh() {Cube();}
         void SetTriangles(vector<Triangle> tri) {triangles = tri;}
         vector<Triangle>& GetTriangles() {return triangles;}
+        vector<Vector3>& GetVertices() {return vertices;}
+        vector<Vector3i>& GetIndices() {return indices;}
+        vector<Vector2>& GetUVs() {return uvs;}
         Transform& GetTransform() {return transform;}
         vector<uint32_t>& GetTexture() {return textures;}
         int& GetUVsWidth() {return texWidth;}
@@ -53,7 +57,12 @@ class Mesh
         void Sphere(int stacks = 32, int slices = 32, float radius = 1.0f);
     private:
         Node node;
+        // triangle (GPU)
         vector<Triangle> triangles;
+        //vertex buffer (CPU)
+        vector<Vector3> vertices;
+        vector<Vector3i> indices;
+        vector<Vector2> uvs;
         uint32_t color = 0xFF555555;
         Transform transform;
         vector<uint32_t> textures;

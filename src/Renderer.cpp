@@ -72,16 +72,18 @@ void Renderer::Render()
         vector<Triangle>& triangles = mesh.GetTriangles();
         Vector3 cameraPosition = camera.GetPosition();
         vector<Vector4> planes = camera.GetFrustumPlanes();
-
-        for(Triangle& tri : triangles)
+        //vertex, indices buffer 구조
+        if (!IsTri())
         {
-            vector<Vector3> projectionPoints;
-            vector<Vector3> modelPoints;
-            vector<Vector2> uvs;
+            vector<Vector3>& vertices = mesh.GetVertices();
+            vector<Vector3i>& indices = mesh.GetIndices();
+            vector<Vector2>& uvs = mesh.GetUVs();
+            vector<Vector3> proj_m;
+            vector<Vector3> proj_p;
             //행렬 변환
-            for (Vertex& vertice : tri.vertices)
+            for(Vector3& vertex : vertices)
             {
-                Vector4& v = vertice.pos;
+                Vector4 v = Vector4(vertex);
                 Vector4 model = mesh.GetTransform().GetMatrix() * v; //월드행렬 변환
                 Vector4 view =  camera.GetViewMatrix() * model; //뷰행렬 변환
                 Vector4 projection = camera.GetProjectionMatrix() * view; //프로젝션행렬 변환
@@ -90,45 +92,123 @@ void Renderer::Render()
                 float screenX = (p.x * 0.5f + 0.5f) * width;
                 float screenY = (1.0f - (p.y * 0.5f + 0.5f)) * height;
                 float zdepth = p.z * 0.5f + 0.5f;
-                modelPoints.push_back(Vector3(model.x, model.y, model.z));
-                projectionPoints.push_back(Vector3(screenX, screenY, zdepth));
+                proj_m.push_back(Vector3(model.x, model.y, model.z));
+                proj_p.push_back(Vector3(screenX, screenY, zdepth));
             }
-            //backface culling 계산
-            Vector3 v1 = modelPoints[0];
-            Vector3 v2 = modelPoints[1];
-            Vector3 v3 = modelPoints[2];
-            Vector3 triCenter = (v1 + v2 + v3) / 3.0f;
-            Vector3 cameraDir = (triCenter - cameraPosition).Normalized();
-            Vector3 normal = ((v2-v1).Cross(v3-v1)).Normalized();
-            if (normal.Dot(cameraDir) >= 0 && renderMode != RenderMode::Wireframe)
-                continue;
-            v1 = projectionPoints[0];
-            v2 = projectionPoints[1];
-            v3 = projectionPoints[2];
-            uvs.push_back(tri.vertices[0].uv);
-            uvs.push_back(tri.vertices[1].uv);
-            uvs.push_back(tri.vertices[2].uv);
-            if (renderMode == RenderMode::Shader)
+            // 그리기
+            for(Vector3i& index : indices)
             {
-                //광원 및 색상
-                float brightness = max(0.0f, normal.Dot(cameraDir * -1));
-                brightness *= 1.0f;
-                int gray = static_cast<int>(brightness * 255.0f);
-                uint32_t color = 0xFF000000 | (gray << 16) | (gray << 8) | gray;// ARGB  각uint8
-                mesh.GetColor() = color;
+                //backface culling 계산
+                Vector3 v1 = proj_m[index.a];
+                Vector3 v2 = proj_m[index.b];
+                Vector3 v3 = proj_m[index.c];
+                Vector3 triCenter = (v1 + v2 + v3) / 3.0f;
+                Vector3 cameraDir = (triCenter - cameraPosition).Normalized();
+                Vector3 normal = ((v2-v1).Cross(v3-v1)).Normalized();
+                if (normal.Dot(cameraDir) >= 0 && renderMode != RenderMode::Wireframe)
+                    continue;
+                v1 = proj_p[index.a];
+                v2 = proj_p[index.b];
+                v3 = proj_p[index.c];
+                if (renderMode == RenderMode::Solid || renderMode == RenderMode::Shader)
+                {
+                    //광원 및 색상
+                    float brightness = max(0.0f, normal.Dot(cameraDir * -1));
+                    brightness *= 1.0f;
+                    int gray = static_cast<int>(brightness * 255.0f);
+                    uint32_t color = 0xFF000000 | (gray << 16) | (gray << 8) | gray;// ARGB  각uint8
+                    mesh.GetColor() = color;
+                }
+                else
+                    mesh.GetColor() = 0xFF555555;
+                if (renderMode == RenderMode::Solid || renderMode == RenderMode::FloatData || renderMode == RenderMode::Shader)
+                    {
+                        vector<Vector3> _proj_p = {v1, v2, v3};
+                        Vector2 uv1 = uvs[index.a];
+                        Vector2 uv2 = uvs[index.b];
+                        Vector2 uv3 = uvs[index.c];
+                        vector<Vector2> _uvs = {uv1, uv2, uv3};
+                        DrawTriangle(_proj_p, _uvs, mesh);
+                    }
+                if (renderMode == RenderMode::Wireframe || renderMode == RenderMode::FloatData)
+                {
+                    DrawLine(v1.toVector2i(), v2.toVector2i(), 0xFF00FF00);
+                    DrawLine(v2.toVector2i(), v3.toVector2i(), 0xFF00FF00);
+                    DrawLine(v1.toVector2i(), v3.toVector2i(), 0xFF00FF00);
+                    DrawPoint(v1.x, v1.y, 4,4,0xFFFFFFFF);
+                    DrawPoint(v2.x, v2.y, 4,4,0xFFFFFFFF);
+                    DrawPoint(v3.x, v3.y, 4,4,0xFFFFFFFF);
+                }
             }
-            else
-                mesh.GetColor() = 0xFF555555;
-            if (renderMode == RenderMode::Solid || renderMode == RenderMode::FloatData || renderMode == RenderMode::Shader)
-                DrawTriangle(projectionPoints, uvs, mesh);
-            if (renderMode == RenderMode::Wireframe || renderMode == RenderMode::FloatData)
+        }
+        //triangle 구조
+        else
+        {
+            //행렬 변환
+            for(Triangle& tri : triangles)
             {
-                DrawLine(v1.toVector2i(), v2.toVector2i(), 0xFFFF0000);
-                DrawLine(v2.toVector2i(), v3.toVector2i(), 0xFFFF0000);
-                DrawLine(v1.toVector2i(), v3.toVector2i(), 0xFFFF0000);
-                DrawPoint(v1.x, v1.y, 4,4,0xFFFFFFFF);
-                DrawPoint(v2.x, v2.y, 4,4,0xFFFFFFFF);
-                DrawPoint(v3.x, v3.y, 4,4,0xFFFFFFFF);
+                for (Vertex& vertice : tri.vertices)
+                {
+                    Vector4& v = vertice.pos;
+                    Vector4 model = mesh.GetTransform().GetMatrix() * v; //월드행렬 변환
+                    Vector4 view =  camera.GetViewMatrix() * model; //뷰행렬 변환
+                    Vector4 projection = camera.GetProjectionMatrix() * view; //프로젝션행렬 변환
+                    Vector3 p = Vector3(projection.x/projection.w , projection.y/projection.w, projection.z/projection.w);//NDC 좌표계로 변환
+                    //화면 중앙으로 위치
+                    float screenX = (p.x * 0.5f + 0.5f) * width;
+                    float screenY = (1.0f - (p.y * 0.5f + 0.5f)) * height;
+                    float zdepth = p.z * 0.5f + 0.5f;
+                    vertice.proj_m = Vector3(model.x, model.y, model.z);
+                    vertice.proj_p = Vector3(screenX, screenY, zdepth);
+                }
+            }
+            // 메쉬 그리기
+            for(Triangle& tri : triangles)
+            {
+                //backface culling 계산
+                Vector3 v1 = tri.vertices[0].proj_m;
+                Vector3 v2 = tri.vertices[1].proj_m;
+                Vector3 v3 = tri.vertices[2].proj_m;
+                Vector3 triCenter = (v1 + v2 + v3) / 3.0f;
+                Vector3 cameraDir = (triCenter - cameraPosition).Normalized();
+                Vector3 normal = ((v2-v1).Cross(v3-v1)).Normalized();
+                if (normal.Dot(cameraDir) >= 0 && renderMode != RenderMode::Wireframe)
+                    continue;
+                if (renderMode == RenderMode::Solid || renderMode == RenderMode::Shader)
+                {
+                    //광원 및 색상
+                    float brightness = max(0.0f, normal.Dot(cameraDir * -1));
+                    brightness *= 1.0f;
+                    int gray = static_cast<int>(brightness * 255.0f);
+                    uint32_t color = 0xFF000000 | (gray << 16) | (gray << 8) | gray;// ARGB  각uint8
+                    mesh.GetColor() = color;
+                }
+                else
+                    mesh.GetColor() = 0xFF555555;
+                if (renderMode == RenderMode::Solid || renderMode == RenderMode::FloatData || renderMode == RenderMode::Shader)
+                {
+                    vector<Vector3> projectionPoints = {
+                        tri.vertices[0].proj_p,
+                        tri.vertices[1].proj_p,
+                        tri.vertices[2].proj_p};                    
+                    vector<Vector2> uvs = {
+                        tri.vertices[0].uv,
+                        tri.vertices[1].uv,
+                        tri.vertices[2].uv};
+                    DrawTriangle(projectionPoints, uvs, mesh);
+                }
+                if (renderMode == RenderMode::Wireframe || renderMode == RenderMode::FloatData)
+                {
+                    v1 = tri.vertices[0].proj_p;
+                    v2 = tri.vertices[1].proj_p;
+                    v3 = tri.vertices[2].proj_p;
+                    DrawLine(v1.toVector2i(), v2.toVector2i(), 0xFFFF0000);
+                    DrawLine(v2.toVector2i(), v3.toVector2i(), 0xFFFF0000);
+                    DrawLine(v1.toVector2i(), v3.toVector2i(), 0xFFFF0000);
+                    DrawPoint(v1.x, v1.y, 4,4,0xFFFFFFFF);
+                    DrawPoint(v2.x, v2.y, 4,4,0xFFFFFFFF);
+                    DrawPoint(v3.x, v3.y, 4,4,0xFFFFFFFF);
+                }
             }
         }
     }
@@ -153,19 +233,17 @@ void Renderer::ProcessInput(SDL_Event& event)
         else if (event.key.keysym.sym == SDLK_2)
             SetRenderMode(RenderMode::FloatData);
         else if (event.key.keysym.sym == SDLK_3)
-        {
             SetRenderMode(RenderMode::Solid);
-        }
         else if (event.key.keysym.sym == SDLK_4)
-        {
             SetRenderMode(RenderMode::Shader);
-        }
         else if (event.key.keysym.sym == SDLK_o)
             OpenObjFile();
         else if (event.key.keysym.sym == SDLK_SPACE)
             bIsSpace = !bIsSpace;
         else if (event.key.keysym.sym == SDLK_r)
             camera.SetLookAt(Vector3(0.f,0.5f, 4.f), Vector3(0.f,0.f,0.f), Vector3(0.f,1.f,0.f));
+        else if (event.key.keysym.sym == SDLK_c)
+            SetTri(!IsTri());
         InputTransform(event);
         break;
     case SDL_KEYUP:
@@ -363,7 +441,7 @@ void Renderer::DrawTriangle(vector<Vector3>& p, vector<Vector2>& uv, Mesh& mesh)
                 {
                     zBuffer[index] = z;
                     //DrawPoint(x, y, 5, 5, color);
-                    if(mesh.GetTexture().size() > 0) mesh.GetColor() = DrawTexture(u, v, mesh);
+                    if(mesh.GetTexture().size() > 0 && renderMode == RenderMode::Shader) mesh.GetColor() = DrawTexture(u, v, mesh);
                     colorBuffer[index] = mesh.GetColor();
                 }
             }

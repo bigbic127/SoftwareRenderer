@@ -54,10 +54,14 @@ static void LoadObjFile(const string& path, Mesh& mesh)//, vector<Vector2D>& uvs
         return;
     }
     vector<Triangle> triangles;
-    vector<Vector3> vertices;
     vector<Vector3> normals;
-    vector<Vector2> uvs;
-    
+    vector<Vector3>& vertices = mesh.GetVertices();
+    vector<Vector3i>& indices = mesh.GetIndices();
+    vector<Vector2>& uvs = mesh.GetUVs();
+    vertices.clear();
+    indices.clear();
+    uvs.clear();
+
     string line;
     while(getline(file, line))
     {
@@ -85,7 +89,6 @@ static void LoadObjFile(const string& path, Mesh& mesh)//, vector<Vector2D>& uvs
         }
         else if (prefix == "f")
         {
-            Vector3i f;
             if (line.find('/') != std::string::npos)
             {
                 int vIdx[3], vtIdx[3], vnIdx[3];
@@ -123,6 +126,7 @@ static void LoadObjFile(const string& path, Mesh& mesh)//, vector<Vector2D>& uvs
                         uv.c = u;
                     }
                 }
+                indices.push_back(vertex);
                 tri.vertices[0].pos = Vector4(vertices[vertex.a]);
                 tri.vertices[1].pos = Vector4(vertices[vertex.b]);
                 tri.vertices[2].pos = Vector4(vertices[vertex.c]);
@@ -137,11 +141,12 @@ static void LoadObjFile(const string& path, Mesh& mesh)//, vector<Vector2D>& uvs
             }else
             {
                 Triangle tri;
+                Vector3i f;
                 iss >> f.a >> f.b >> f.c;
                 f.a -=1;
                 f.b -=1;
                 f.c -=1;
-
+                indices.push_back(f);
                 tri.vertices[0].pos = Vector4(vertices[f.a]);
                 tri.vertices[1].pos = Vector4(vertices[f.b]);
                 tri.vertices[2].pos = Vector4(vertices[f.c]);
@@ -178,10 +183,13 @@ std::vector<Mesh> LoadGLTF(std::string filename)
         for (const auto& primitive : mesh.primitives)
         {
             Mesh _mesh;
-            vector<Vector3> vertices;
-            vector<Vector3i> indices;
+            vector<Vector3>& vertices = _mesh.GetVertices();
+            vector<Vector3i>& indices = _mesh.GetIndices();
+            vector<Vector2>& uvs = _mesh.GetUVs();
+            vertices.clear();
+            indices.clear();
+            uvs.clear();
             vector<Vector3> normals;
-            vector<Vector2> uvs;
             vector<Vector4> weights;
             vector<Vector4i> joints;
 
@@ -287,7 +295,7 @@ std::vector<Mesh> LoadGLTF(std::string filename)
                     weights.push_back({data[v * 4 + 0], data[v * 4 + 1], data[v * 4 + 2], data[v * 4 + 3]});
                 }
             }
-            
+            // Triangle 구조
             vector<Triangle> triangles;
             for (auto& i : indices)
             {
