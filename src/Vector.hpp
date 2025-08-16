@@ -40,7 +40,6 @@ class Vector3
     public:
         Vector3() : x(0), y(0), z(0) {}
         Vector3(float _x, float _y, float _z) : x(_x), y(_y), z(_z) {}
-        Vector2 Vector2i() const{return Vector2(int(x), int(y));}
         Vector3 operator+(const Vector3& vec) const
         {
             return Vector3(x + vec.x, y + vec.y, z + vec.z);
@@ -83,6 +82,8 @@ class Vector3
             if (len == 0) return Vector3(0,0,0);
             return (*this) / len;
         }
+        Vector2 toVector2i() const{return Vector2(int(x), int(y));}
+        Vector2 toVector2() const{return Vector2(x, y);}
     public:
         float x, y, z;
 };
@@ -102,6 +103,7 @@ class Vector4
         Vector4() : x(0), y(0), z(0), w(1){}
         Vector4(float _x, float _y, float _z, float _w) : x(_x), y(_y), z(_z), w(_w){}
         Vector4(Vector3 &vec) : x(vec.x), y(vec.y), z(vec.z), w(1.0f){}
+        Vector4(Vector3 &vec, float _w) : x(vec.x), y(vec.y), z(vec.z), w(_w){}
         Vector4 operator+(const Vector4& vec) const
         {
             return Vector4(x + vec.x, y + vec.y, z + vec.z, w + vec.w);

@@ -22,7 +22,7 @@ class Camera
             this->near = _near;
             this->far = _far;
         }
-        Matrix4x4 GetProjectionMatrix() {return Perspective() * LookAt();}
+        Matrix4x4 GetProjectionMatrix() {return Perspective();}
         Matrix4x4 GetViewMatrix() {return LookAt();}
         Vector3 GetDirection() {return (target - eye).Normalized();}
         Vector3 GetPosition() const {return eye;}
@@ -66,7 +66,7 @@ class Camera
         //절두체 6면
         vector<Vector4> ExtractFrustumPlanes()
         {
-            Matrix4x4 m;
+            Matrix4x4 m = Perspective();
             planes.clear();
             planes.push_back((m.GetRow(3) + m.GetRow(0)).Normalized()); // Left
             planes.push_back((m.GetRow(3) - m.GetRow(0)).Normalized()); // Right

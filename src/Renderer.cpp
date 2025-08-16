@@ -37,7 +37,7 @@ void Renderer::Ready()
     meshes.clear();
     meshes.push_back(mesh);
     //카메라 파마리터 변경
-    camera.SetLookAt(Vector3(0.f,0.5f, 4.f), Vector3(0.f,0.f,0.f), Vector3(0.f,1.f,0.f));
+    camera.SetLookAt(Vector3(0.f, 1.5f, 4.f), Vector3(0.f,0.f,0.f), Vector3(0.f,1.f,0.f));
     camera.SetPerspective(70.f, float(width)/height, 0.1f, 100.f);
 }
 
@@ -69,190 +69,66 @@ void Renderer::Render()
     //메쉬 그리기
     for (Mesh&mesh : meshes)
     {
-        vector<Vector3> vertices = mesh.GetVertices();
-        vector<Vector3i> indices = mesh.GetIndices();
-        vector<Vector2> uvs = mesh.GetUVs();
-        vector<Vector3i> uvIndices = mesh.GetUVIndices();
-        vector<Vector3> worldVertices = mesh.GetWorldVertices();
-        vector<uint32_t> colors = mesh.GetColors();
-        vector<Triangle> triangles = mesh.GetTriangle();
-        triangles.clear();
+        vector<Triangle>& triangles = mesh.GetTriangles();
         Vector3 cameraPosition = camera.GetPosition();
         vector<Vector4> planes = camera.GetFrustumPlanes();
-        vector<Vector3>& projectionPoints = mesh.GetPojectionPoint();
-        //뷰행렬로 변환
-        projectionPoints.clear();
-        worldVertices.clear();
-        /* 클리핑
-        for (int i = 0; i < indices.size(); i++)
+
+        for(Triangle& tri : triangles)
         {
-            Vector3i& tri = indices[i];
-            int a = tri.a;
-            int b = tri.b;
-            int c = tri.c;
-            Vector4 v1 = Vector4(vertices[a]);
-            Vector4 v2 = Vector4(vertices[b]);
-            Vector4 v3 = Vector4(vertices[c]);
-            v1 = camera.GetProjectionMatrix() * mesh.GetTransform().GetMatrix() * v1;
-            v2 = camera.GetProjectionMatrix() * mesh.GetTransform().GetMatrix() * v2;
-            v3 = camera.GetProjectionMatrix() * mesh.GetTransform().GetMatrix() * v3;
-            Vector3i& triuv = uvIndices[i];
-            int _ua = triuv.a;
-            int _ub = triuv.b;
-            int _uc = triuv.c;
-            Vector2 uv1 = uvs[_ua];
-            Vector2 uv2 = uvs[_ub];
-            Vector2 uv3 = uvs[_uc];
-            Vertex vt1 = Vertex(v1, uv1);
-            Vertex vt2 = Vertex(v2, uv2);
-            Vertex vt3 = Vertex(v3, uv3);
-            vector<Vertex> vtx = {vt1, vt2, vt3};
-            //절두체 컬링, 클리핑
-            for (Vector4& plane : planes)
-            {
-                auto dist = [&](const Vertex& v) {
-                    return plane.x * v.pos.x +
-                        plane.y * v.pos.y +
-                        plane.z * v.pos.z +
-                        plane.w * v.pos.w;
-                };
-                std::vector<Vertex> output;
-                for (size_t i = 0; i < vtx.size(); ++i)
-                {
-                    const Vertex& curr = vtx[i];
-                    const Vertex& prev = vtx[(i + vtx.size() - 1) % vtx.size()];
-                    float distCurr = dist(curr);
-                    float distPrev = dist(prev);
-                    bool currInside = distCurr >= 0;
-                    bool prevInside = distPrev >= 0;
-                    if (prevInside && currInside)
-                        output.push_back(curr);
-                    else if (prevInside && !currInside)
-                        output.push_back(IntersectVertex(prev, curr, plane));
-                    else if (!prevInside && currInside)
-                    {
-                        output.push_back(IntersectVertex(prev, curr, plane));
-                        output.push_back(curr);
-                    }
-                }
-                vector<Triangle>tr = TriangulatePolygon(output);
-                triangles.insert(triangles.end(), tr.begin(), tr.end());
-            }
-        }
-        */
-        for(Triangle& tri:triangles)
-        {
-            for (Vertex& vertice:tri.vertices)
+            vector<Vector3> projectionPoints;
+            vector<Vector3> modelPoints;
+            vector<Vector2> uvs;
+            //행렬 변환
+            for (Vertex& vertice : tri.vertices)
             {
                 Vector4& v = vertice.pos;
-                Vector3 p = Vector3(v.x/v.w , v.y/v.w, v.z/v.w);//NDC 좌표계로 변환
+                Vector4 model = mesh.GetTransform().GetMatrix() * v; //월드행렬 변환
+                Vector4 view =  camera.GetViewMatrix() * model; //뷰행렬 변환
+                Vector4 projection = camera.GetProjectionMatrix() * view; //프로젝션행렬 변환
+                Vector3 p = Vector3(projection.x/projection.w , projection.y/projection.w, projection.z/projection.w);//NDC 좌표계로 변환
                 //화면 중앙으로 위치
                 float screenX = (p.x * 0.5f + 0.5f) * width;
                 float screenY = (1.0f - (p.y * 0.5f + 0.5f)) * height;
                 float zdepth = p.z * 0.5f + 0.5f;
-                v = Vector4(screenX, screenY, zdepth, 1.0f);
-            }           
-            Vector3 v1 = tri.vertices[0].pos.ToVector3();
-            Vector3 v2 = tri.vertices[1].pos.ToVector3();
-            Vector3 v3 = tri.vertices[2].pos.ToVector3();
-            Vector2 uv1 = tri.vertices[0].uv;
-            Vector2 uv2 = tri.vertices[1].uv;
-            Vector2 uv3 = tri.vertices[2].uv;
-            DrawLine(v1.Vector2i(), v2.Vector2i(), 0xFFFF0000);
-            DrawLine(v2.Vector2i(), v3.Vector2i(), 0xFFFF0000);
-            DrawLine(v1.Vector2i(), v3.Vector2i(), 0xFFFF0000);
-            DrawPoint(v1.x, v1.y, 6,6,0xFF000000);
-            DrawPoint(v2.x, v2.y, 6,6,0xFF000000);
-            DrawPoint(v3.x, v3.y, 6,6,0xFF000000);
-        }
-        for(Vector3& vertice:vertices)
-        {
-            //행렬 변환 (world * view * projection) -> clip -> NDC(-1 ~ 1 정규화)
-            Vector4 vec4 = Vector4(vertice.x, vertice.y, vertice.z, 1.0f);//Vector4로 변환
-            Vector4 v = camera.GetProjectionMatrix() * mesh.GetTransform().GetMatrix() * vec4;//프로젝션행렬까지 변환
-            Vector4 w = mesh.GetTransform().GetMatrix() * vec4;//뷰행렬까지 변환 라이팅계산
-            Vector3 p = Vector3(v.x/v.w , v.y/v.w, v.z/v.w);//NDC 좌표계로 변환
-            //화면 중앙으로 위치
-            float screenX = (p.x * 0.5f + 0.5f) * width;
-            float screenY = (1.0f - (p.y * 0.5f + 0.5f)) * height;
-            float zdepth = p.z * 0.5f + 0.5f;
-            Vector3 vertex = Vector3(screenX, screenY, zdepth);
-            projectionPoints.push_back(vertex);
-            worldVertices.push_back(Vector3(w.x , w.y, w.z));
-        }
-        //픽셀그리기
-        if (renderMode == RenderMode::Solid || renderMode == RenderMode::FloatData || renderMode == RenderMode::Shader)
-        {
-            //면그리기
-            int colorIndex = 0;
-            for (int i = 0; i < indices.size(); i++)
+                modelPoints.push_back(Vector3(model.x, model.y, model.z));
+                projectionPoints.push_back(Vector3(screenX, screenY, zdepth));
+            }
+            //backface culling 계산
+            Vector3 v1 = modelPoints[0];
+            Vector3 v2 = modelPoints[1];
+            Vector3 v3 = modelPoints[2];
+            Vector3 triCenter = (v1 + v2 + v3) / 3.0f;
+            Vector3 cameraDir = (triCenter - cameraPosition).Normalized();
+            Vector3 normal = ((v2-v1).Cross(v3-v1)).Normalized();
+            if (normal.Dot(cameraDir) >= 0 && renderMode != RenderMode::Wireframe)
+                continue;
+            v1 = projectionPoints[0];
+            v2 = projectionPoints[1];
+            v3 = projectionPoints[2];
+            uvs.push_back(tri.vertices[0].uv);
+            uvs.push_back(tri.vertices[1].uv);
+            uvs.push_back(tri.vertices[2].uv);
+            if (renderMode == RenderMode::Shader)
             {
-                Vector3i& tri = indices[i];
-                int a = tri.a;
-                int b = tri.b;
-                int c = tri.c;
-                Vector3 v1 = projectionPoints[a];
-                Vector3 v2 = projectionPoints[b];
-                Vector3 v3 = projectionPoints[c];
-                //UV z값 보간 (view행렬의 w값)
-                Vector3i& triuv = uvIndices[i];
-                int _ua = triuv.a;
-                int _ub = triuv.b;
-                int _uc = triuv.c;
-                Vector2 uv1 = uvs[_ua];
-                Vector2 uv2 = uvs[_ub];
-                Vector2 uv3 = uvs[_uc];
-                //backface culling 계산
-                Vector3 _a = worldVertices[a];
-                Vector3 _b = worldVertices[b];
-                Vector3 _c = worldVertices[c];
-                Vector3 triCenter = (_a + _b + _c) / 3.0f;
-                Vector3 cameraDir = (triCenter - cameraPosition).Normalized();
-                Vector3 normal = ((_b-_a).Cross(_c-_a)).Normalized();
-                if (normal.Dot(cameraDir) >= 0)
-                {
-                    colorIndex += 1;
-                    continue;
-                }
                 //광원 및 색상
                 float brightness = max(0.0f, normal.Dot(cameraDir * -1));
                 brightness *= 1.0f;
                 int gray = static_cast<int>(brightness * 255.0f);
                 uint32_t color = 0xFF000000 | (gray << 16) | (gray << 8) | gray;// ARGB  각uint8
-                //면 그리기
-                DrawTriangle(v1, v2, v3, color, bIsTextureMode, uv1, uv2, uv3, mesh);
-                if (renderMode == RenderMode::FloatData)
-                {
-                    DrawLine(v1.Vector2i(), v2.Vector2i(), 0xFF333333);
-                    DrawLine(v2.Vector2i(), v3.Vector2i(), 0xFF333333);
-                    DrawLine(v1.Vector2i(), v3.Vector2i(), 0xFF333333);
-                    DrawPoint(v1.x, v1.y, 4,4,0xFFFF0000);
-                    DrawPoint(v2.x, v2.y, 4,4,0xFFFF0000);
-                    DrawPoint(v3.x, v3.y, 4,4,0xFFFF0000);
-                }
-                colorIndex += 1;
+                mesh.GetColor() = color;
             }
-        }
-        else if (renderMode == RenderMode::Wireframe)
-        {
-        //선그리기
-            for (Vector3i& tri: indices)
+            else
+                mesh.GetColor() = 0xFF555555;
+            if (renderMode == RenderMode::Solid || renderMode == RenderMode::FloatData || renderMode == RenderMode::Shader)
+                DrawTriangle(projectionPoints, uvs, mesh);
+            if (renderMode == RenderMode::Wireframe || renderMode == RenderMode::FloatData)
             {
-                int a = tri.a;
-                int b = tri.b;
-                int c = tri.c;
-                Vector3 v1 = projectionPoints[a];
-                Vector3 v2 = projectionPoints[b];
-                Vector3 v3 = projectionPoints[c]; 
-                DrawLine(v1.Vector2i(), v2.Vector2i(), 0xFF333333);
-                DrawLine(v2.Vector2i(), v3.Vector2i(), 0xFF333333);
-                DrawLine(v1.Vector2i(), v3.Vector2i(), 0xFF333333);
-            }
-            //점 그리기
-            for (Vector3& point:projectionPoints)
-            {
-                Vector3& p = point;
-                DrawPoint(p.x, p.y, 4,4,0xFFFF0000);
+                DrawLine(v1.toVector2i(), v2.toVector2i(), 0xFFFF0000);
+                DrawLine(v2.toVector2i(), v3.toVector2i(), 0xFFFF0000);
+                DrawLine(v1.toVector2i(), v3.toVector2i(), 0xFFFF0000);
+                DrawPoint(v1.x, v1.y, 4,4,0xFFFFFFFF);
+                DrawPoint(v2.x, v2.y, 4,4,0xFFFFFFFF);
+                DrawPoint(v3.x, v3.y, 4,4,0xFFFFFFFF);
             }
         }
     }
@@ -278,13 +154,11 @@ void Renderer::ProcessInput(SDL_Event& event)
             SetRenderMode(RenderMode::FloatData);
         else if (event.key.keysym.sym == SDLK_3)
         {
-            SetRenderMode(RenderMode::Shader);
-            bIsTextureMode = false;
+            SetRenderMode(RenderMode::Solid);
         }
         else if (event.key.keysym.sym == SDLK_4)
         {
-            SetRenderMode(RenderMode::Solid);
-            bIsTextureMode = true;
+            SetRenderMode(RenderMode::Shader);
         }
         else if (event.key.keysym.sym == SDLK_o)
             OpenObjFile();
@@ -449,47 +323,48 @@ void Renderer::DrawLine(Vector2 a, Vector2 b, uint32_t color)
     }
 }
 //삼각형 그리기 Barycentric Algorithm
-void Renderer::DrawTriangle(Vector3 a, Vector3 b, Vector3 c, uint32_t color, bool bIsTex, Vector2 uv0, Vector2 uv1, Vector2 uv2, Mesh& mesh)
+void Renderer::DrawTriangle(vector<Vector3>& p, vector<Vector2>& uv, Mesh& mesh)
 {
     //2D좌표로 변환
-    Vector2 p0 = { a.x, a.y };
-    Vector2 p1 = { b.x, b.y };
-    Vector2 p2 = { c.x, c.y };
+    Vector3 p1 = p[0];
+    Vector3 p2 = p[1];
+    Vector3 p3 = p[2];
+    //UV
+    Vector2 uv1 = uv[0];
+    Vector2 uv2 = uv[1];
+    Vector2 uv3 = uv[2];
     //AABB 범위 계산
-    float minX = max(0.0f, floor(min({ p0.x, p1.x, p2.x })));
-    float maxX = min((float)width - 1, ceil(max({ p0.x, p1.x, p2.x })));
-    float minY = max(0.0f, floor(min({ p0.y, p1.y, p2.y })));
-    float maxY = min((float)height - 1, ceil(max({ p0.y, p1.y, p2.y })));
-    float area = EdgeFunction(p0, p1, p2);
+    float minX = max(0.0f, floor(min({ p1.x, p2.x, p3.x })));
+    float maxX = min((float)width - 1, ceil(max({ p1.x, p2.x, p3.x })));
+    float minY = max(0.0f, floor(min({ p1.y, p2.y, p3.y })));
+    float maxY = min((float)height - 1, ceil(max({ p1.y, p2.y, p3.y })));
+    float area = EdgeFunction(p1.toVector2(), p2.toVector2(), p3.toVector2());
     if (area == 0.0f)
         return; //삼각형이 아니면 그리지 않음
-
     for (int y = (int)minY; y <= (int)maxY; ++y) {
         for (int x = (int)minX; x <= (int)maxX; ++x) {
-
             Vector2 p = {x + 0.5f, y + 0.5f}; //픽셀 중심 좌표
-
-            float w0 = EdgeFunction(p1, p2, p);
-            float w1 = EdgeFunction(p2, p0, p);
-            float w2 = EdgeFunction(p0, p1, p);
+            float w1 = EdgeFunction(p2.toVector2(), p3.toVector2(), p);
+            float w2 = EdgeFunction(p3.toVector2(), p1.toVector2(), p);
+            float w3 = EdgeFunction(p1.toVector2(), p2.toVector2(), p);
             //픽셀이 삼각형 내부에 있는지 확인 (모든 barycentric 계수가 양수이면 내부)
-            if (w0 >= 0 && w1 >= 0 && w2 >= 0)
+            if (w1 >= 0 && w2 >= 0 && w3 >= 0)
             {
-                w0 /= area;
                 w1 /= area;
                 w2 /= area;
+                w3 /= area;
                 // Barycentric interpolation (Z값 보간)
-                float z = a.z*w0 + b.z*w1 + c.z*w2;
+                float z = p1.z*w1 + p2.z*w2 + p3.z*w3;
                 // 보간된 UV
-                float u = uv0.x*w0 + uv1.x*w1 + uv2.x*w2;
-                float v = uv0.y*w0 + uv1.y*w1 + uv2.y*w2;
+                float u = uv1.x*w1 + uv2.x*w2 + uv3.x*w3;
+                float v = uv1.y*w1 + uv2.y*w2 + uv3.y*w3;
                 int index = y * width + x;
                 if (z < zBuffer[index])
                 {
                     zBuffer[index] = z;
                     //DrawPoint(x, y, 5, 5, color);
-                    if(bIsTex && mesh.GetTexture().size() > 0) color = DrawTexture(u, v, mesh);
-                    colorBuffer[index] = color;
+                    if(mesh.GetTexture().size() > 0) mesh.GetColor() = DrawTexture(u, v, mesh);
+                    colorBuffer[index] = mesh.GetColor();
                 }
             }
         }
@@ -529,7 +404,6 @@ uint32_t Renderer::DrawTexture(float u, float v, Mesh& mesh)
 
 void Renderer::OpenObjFile()
 {
-
     std::vector<std::filesystem::path> paths = FileDialog::ShowFileDialog();
     if (paths.size() <= 0)
         return;
@@ -559,13 +433,17 @@ void Renderer::OpenObjFile()
     Vector3 maxBound = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
     for (Mesh& mesh : meshes)
     {
-        for (const auto& v : mesh.GetVertices()) {
-            minBound.x = std::min(minBound.x, v.x);
-            minBound.y = std::min(minBound.y, v.y);
-            minBound.z = std::min(minBound.z, v.z);
-            maxBound.x = std::max(maxBound.x, v.x);
-            maxBound.y = std::max(maxBound.y, v.y);
-            maxBound.z = std::max(maxBound.z, v.z);
+        for (const Triangle& tri : mesh.GetTriangles())
+        {
+            for (const Vertex& v : tri.vertices)
+            {
+                minBound.x = std::min(minBound.x, v.pos.x);
+                minBound.y = std::min(minBound.y, v.pos.y);
+                minBound.z = std::min(minBound.z, v.pos.z);
+                maxBound.x = std::max(maxBound.x, v.pos.x);
+                maxBound.y = std::max(maxBound.y, v.pos.y);
+                maxBound.z = std::max(maxBound.z, v.pos.z);
+            }
         }
     }
     Vector3 size = minBound - maxBound;

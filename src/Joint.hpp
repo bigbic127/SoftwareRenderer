@@ -5,8 +5,6 @@
 #include "Matrix.hpp"
 #include "Transform.hpp"
 
-using namespace std;
-
 struct Joint {
     std::string name;
     int parent = -1;

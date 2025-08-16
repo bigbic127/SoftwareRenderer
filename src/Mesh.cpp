@@ -2,65 +2,110 @@
 
 void Mesh::Cube()
 {
-    vertices.clear();
-    indices.clear();
-    colors.clear();
-    vertices =
-    {
-        {-1,  1, -1}, // 0 - 왼쪽 위 앞
-        { 1,  1, -1}, // 1 - 오른쪽 위 앞
-        { 1, -1, -1}, // 2 - 오른쪽 아래 앞
-        {-1, -1, -1}, // 3 - 왼쪽 아래 앞
-        {-1,  1,  1}, // 4 - 왼쪽 위 뒤
-        { 1,  1,  1}, // 5 - 오른쪽 위 뒤
-        { 1, -1,  1}, // 6 - 오른쪽 아래 뒤
-        {-1, -1,  1}  // 7 - 왼쪽 아래 뒤
-    };
-
-    indices =
-    {
-        // 앞면
-        {0, 2, 3},
-        {0, 1, 2},
-        // 뒷면
-        {4, 6, 5},
-        {4, 7, 6},
-        // 왼쪽면
-        {0, 7, 4},
-        {0, 3, 7},
-        // 오른쪽면
-        {1, 6, 2},
-        {1, 5, 6},
-        // 윗면
-        {0, 5, 1},
-        {0, 4, 5},
-        // 아랫면
-        {3, 6, 7},
-        {3, 2, 6}
-    };
-    uvs =
-    {
-        {0.0f, 1.0f}, // 0 - 왼쪽 위 앞
-        {1.0f, 1.0f}, // 1 - 오른쪽 위 앞
-        {1.0f, 0.0f}, // 2 - 오른쪽 아래 앞
-        {0.0f, 0.0f}, // 3 - 왼쪽 아래 앞
-        {0.0f, 1.0f}, // 4 - 왼쪽 위 뒤
-        {1.0f, 1.0f}, // 5 - 오른쪽 위 뒤
-        {1.0f, 0.0f}, // 6 - 오른쪽 아래 뒤
-        {0.0f, 0.0f}  // 7 - 왼쪽 아래 뒤
-    };
-    uvIndices = indices;
+    Triangle tri;
+    triangles.clear();
+    // 앞
+    tri.vertices[0].pos = Vector4(-1, 1, -1, 1.0f);
+    tri.vertices[1].pos = Vector4(1, -1, -1, 1.0f);
+    tri.vertices[2].pos = Vector4(-1, -1, -1, 1.0f);
+    tri.vertices[0].uv = Vector2(0.0f, 1.0f);
+    tri.vertices[1].uv = Vector2(1.0f, 0.0f);
+    tri.vertices[2].uv = Vector2(0.0f, 0.0f);
+    triangles.push_back(tri);
+    tri.vertices[0].pos = Vector4(-1, 1, -1, 1.0f);
+    tri.vertices[1].pos = Vector4(1, 1, -1, 1.0f);
+    tri.vertices[2].pos = Vector4(1, -1, -1, 1.0f);
+    tri.vertices[0].uv = Vector2(0.0f, 1.0f);
+    tri.vertices[1].uv = Vector2(1.0f, 1.0f);
+    tri.vertices[2].uv = Vector2(1.0f, 0.0f);
+    triangles.push_back(tri);
+    // 뒤
+    tri.vertices[0].pos = Vector4(-1, -1, 1, 1.0f);
+    tri.vertices[1].pos = Vector4(1, 1, 1, 1.0f);
+    tri.vertices[2].pos = Vector4(-1, 1, 1, 1.0f);
+    tri.vertices[0].uv = Vector2(0.0f, 0.0f);
+    tri.vertices[1].uv = Vector2(1.0f, 1.0f);
+    tri.vertices[2].uv = Vector2(0.0f, 1.0f);
+    triangles.push_back(tri);
+    tri.vertices[0].pos = Vector4(-1, -1, 1, 1.0f);
+    tri.vertices[1].pos = Vector4(1, -1, 1, 1.0f);
+    tri.vertices[2].pos = Vector4(1, 1, 1, 1.0f);
+    tri.vertices[0].uv = Vector2(0.0f, 0.0f);
+    tri.vertices[1].uv = Vector2(1.0f, 0.0f);
+    tri.vertices[2].uv = Vector2(1.0f, 1.0f);
+    triangles.push_back(tri);
+    // 오른쪽
+    tri.vertices[0].pos = Vector4(1, 1, -1, 1.0f);
+    tri.vertices[1].pos = Vector4(1, -1, 1, 1.0f);
+    tri.vertices[2].pos = Vector4(1, -1, -1, 1.0f);
+    tri.vertices[0].uv = Vector2(0.0f, 1.0f);
+    tri.vertices[1].uv = Vector2(1.0f, 0.0f);
+    tri.vertices[2].uv = Vector2(0.0f, 0.0f);
+    triangles.push_back(tri);
+    tri.vertices[0].pos = Vector4(1, 1, -1, 1.0f);
+    tri.vertices[1].pos = Vector4(1, 1, 1, 1.0f);
+    tri.vertices[2].pos = Vector4(1, -1, 1, 1.0f);
+    tri.vertices[0].uv = Vector2(0.0f, 1.0f);
+    tri.vertices[1].uv = Vector2(1.0f, 1.0f);
+    tri.vertices[2].uv = Vector2(1.0f, 0.0f);
+    triangles.push_back(tri);
+    // 왼쪽
+    tri.vertices[0].pos = Vector4(-1, 1, 1, 1.0f);
+    tri.vertices[1].pos = Vector4(-1, -1, -1, 1.0f);
+    tri.vertices[2].pos = Vector4(-1, -1, 1, 1.0f);
+    tri.vertices[0].uv = Vector2(0.0f, 1.0f);
+    tri.vertices[1].uv = Vector2(1.0f, 0.0f);
+    tri.vertices[2].uv = Vector2(0.0f, 0.0f);
+    triangles.push_back(tri);
+    tri.vertices[0].pos = Vector4(-1, 1, 1, 1.0f);
+    tri.vertices[1].pos = Vector4(-1, 1, -1, 1.0f);
+    tri.vertices[2].pos = Vector4(-1, -1, -1, 1.0f);
+    tri.vertices[0].uv = Vector2(0.0f, 1.0f);
+    tri.vertices[1].uv = Vector2(1.0f, 1.0f);
+    tri.vertices[2].uv = Vector2(1.0f, 0.0f);
+    triangles.push_back(tri);
+    // 위
+    tri.vertices[0].pos = Vector4(-1, 1, 1, 1.0f);
+    tri.vertices[1].pos = Vector4(1, 1, 1, 1.0f);
+    tri.vertices[2].pos = Vector4(-1, 1, -1, 1.0f);
+    tri.vertices[0].uv = Vector2(0.0f, 1.0f);
+    tri.vertices[1].uv = Vector2(1.0f, 1.0f);
+    tri.vertices[2].uv = Vector2(0.0f, 0.0f);
+    triangles.push_back(tri);
+    tri.vertices[0].pos = Vector4(1, 1, 1, 1.0f);
+    tri.vertices[1].pos = Vector4(1, 1, -1, 1.0f);
+    tri.vertices[2].pos = Vector4(-1, 1, -1, 1.0f);
+    tri.vertices[0].uv = Vector2(1.0f, 1.0f);
+    tri.vertices[1].uv = Vector2(1.0f, 0.0f);
+    tri.vertices[2].uv = Vector2(0.0f, 0.0f);
+    triangles.push_back(tri);
+    // 아래
+    tri.vertices[0].pos = Vector4(-1, -1, -1, 1.0f);
+    tri.vertices[1].pos = Vector4(1, -1, -1, 1.0f);
+    tri.vertices[2].pos = Vector4(-1, -1, 1, 1.0f);
+    tri.vertices[0].uv = Vector2(0.0f, 0.0f);
+    tri.vertices[1].uv = Vector2(1.0f, 0.0f);
+    tri.vertices[2].uv = Vector2(0.0f, 1.0f);
+    triangles.push_back(tri);
+    tri.vertices[0].pos = Vector4(1, -1, -1, 1.0f);
+    tri.vertices[1].pos = Vector4(1, -1, 1, 1.0f);
+    tri.vertices[2].pos = Vector4(-1, -1, 1, 1.0f);
+    tri.vertices[0].uv = Vector2(1.0f, 0.0f);
+    tri.vertices[1].uv = Vector2(1.0f, 1.0f);
+    tri.vertices[2].uv = Vector2(0.0f, 1.0f);
+    triangles.push_back(tri);
 }
 
 void Mesh::Sphere(int stacks, int slices, float radius)
 {
-    vertices.clear();
-    indices.clear();
-    normals.clear();
-    uvs.clear();
-    colors.clear();
+    triangles.clear();
+    vector<Vector3> vertices;
+    vector<Vector3i> indices;
+    vector<Vector3> normals;
+    vector<Vector2> uvs;
     constexpr float PI = 3.14159265359f;
-    for (int lat = 0; lat <= stacks; ++lat) {
+    for (int lat = 0; lat <= stacks; ++lat)
+    {
         float theta = lat * PI / stacks;
         float sinTheta = sin(theta);
         float cosTheta = cos(theta);
@@ -81,12 +126,36 @@ void Mesh::Sphere(int stacks, int slices, float radius)
     }
     for (int lat = 0; lat < stacks; ++lat)
     {
-        for (int lon = 0; lon < slices; ++lon) {
+        for (int lon = 0; lon < slices; ++lon)
+        {
             int current = lat * (slices + 1) + lon;
             int next = current + slices + 1;
             indices.push_back(Vector3i(current, current + 1, next));
             indices.push_back(Vector3i(current + 1, next + 1, next));
         }
     }
-    uvIndices = indices;
+    for (const Vector3i& i : indices)
+    {
+        Triangle tri;
+        Vector3 v1 = vertices[i.a];
+        Vector3 v2 = vertices[i.b];
+        Vector3 v3 = vertices[i.c];
+        Vector3 n1 = normals[i.a];
+        Vector3 n2 = normals[i.b];
+        Vector3 n3 = normals[i.c];
+        Vector2 uv1 = uvs[i.a];
+        Vector2 uv2 = uvs[i.b];
+        Vector2 uv3 = uvs[i.c];
+
+        tri.vertices[0].pos = v1;
+        tri.vertices[1].pos = v2;
+        tri.vertices[2].pos = v3;
+        tri.vertices[0].nor = n1;
+        tri.vertices[1].nor = n2;
+        tri.vertices[2].nor = n3;
+        tri.vertices[0].uv = uv1;
+        tri.vertices[1].uv = uv2;
+        tri.vertices[2].uv = uv3;
+        triangles.push_back(tri);
+    }
 }

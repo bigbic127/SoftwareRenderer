@@ -33,7 +33,7 @@ class Renderer : public Window
         void DrawRect(int x, int y, int w, int h, uint32_t color);
         void DrawPoint(int x, int y, int w, int h, uint32_t color);
         void DrawLine(Vector2 a, Vector2 b, uint32_t color = 0xFFFFFFFF);
-        void DrawTriangle(Vector3 a, Vector3 b, Vector3 c, uint32_t color, bool bIsTex, Vector2 uv0, Vector2 uv1, Vector2 uv2, Mesh& mesh);
+        void DrawTriangle(vector<Vector3>& p, vector<Vector2>& uv, Mesh& mesh);
         float EdgeFunction(const Vector2& a, const Vector2& b, const Vector2& c);
         uint32_t DrawTexture(float u, float v, Mesh& mesh);
         void SetRenderMode(RenderMode render) {renderMode = render;}
@@ -45,12 +45,9 @@ class Renderer : public Window
         float frameSecond = 1000/FPS;
         float previousFrameSecond = 0.0f;
         bool bIsLooping = false;
-        vector<Vector3> projectionPoints;
         vector<Mesh> meshes;
-        Mesh mesh;
         Camera camera;
         RenderMode renderMode = RenderMode::Wireframe;
-        bool bIsTextureMode = false;
         bool bIsSpace = false;
         bool bIsClicked = false;
         bool bIsMClicked = false;

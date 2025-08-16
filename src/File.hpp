@@ -53,19 +53,10 @@ static void LoadObjFile(const string& path, Mesh& mesh)//, vector<Vector2D>& uvs
         SDL_Log("Faild to open file. path:%s\n", path.c_str());
         return;
     }
-    vector<Vector3>& vertices = mesh.GetVertices();
-    vector<Vector3i>& indices = mesh.GetIndices();
-    vector<Vector3i>& normalIndices = mesh.GetNormalIndices();
-    vector<Vector3i>& uvIndices = mesh.GetUVIndices();
-    vector<Vector3>& normals = mesh.GetNormals();
-    vector<Vector2>& uvs = mesh.GetUVs();
-
-    vertices.clear();
-    indices.clear();
-    normalIndices.clear();
-    uvIndices.clear();
-    normals.clear();
-    uvs.clear();
+    vector<Triangle> triangles;
+    vector<Vector3> vertices;
+    vector<Vector3> normals;
+    vector<Vector2> uvs;
     
     string line;
     while(getline(file, line))
@@ -102,6 +93,7 @@ static void LoadObjFile(const string& path, Mesh& mesh)//, vector<Vector2D>& uvs
                 for (int i = 0; i < 3; ++i) {
                     iss >> vIdx[i] >> slash >> vtIdx[i] >> slash >> vnIdx[i];
                 }
+                Triangle tri;
                 Vector3i vertex;
                 Vector3i normal;
                 Vector3i uv;
@@ -131,19 +123,33 @@ static void LoadObjFile(const string& path, Mesh& mesh)//, vector<Vector2D>& uvs
                         uv.c = u;
                     }
                 }
-                indices.push_back(vertex);
-                normalIndices.push_back(normal);
-                uvIndices.push_back(uv);                
+                tri.vertices[0].pos = Vector4(vertices[vertex.a]);
+                tri.vertices[1].pos = Vector4(vertices[vertex.b]);
+                tri.vertices[2].pos = Vector4(vertices[vertex.c]);
+                tri.vertices[0].nor = Vector4(normals[normal.a], 0.0f);
+                tri.vertices[1].nor = Vector4(normals[normal.b], 0.0f);
+                tri.vertices[2].nor = Vector4(normals[normal.c], 0.0f);
+                tri.vertices[0].uv = uvs[uv.a];
+                tri.vertices[1].uv = uvs[uv.b];
+                tri.vertices[2].uv = uvs[uv.c];        
+                triangles.push_back(tri);
+
             }else
             {
+                Triangle tri;
                 iss >> f.a >> f.b >> f.c;
                 f.a -=1;
                 f.b -=1;
                 f.c -=1;
-                indices.push_back(f);
+
+                tri.vertices[0].pos = Vector4(vertices[f.a]);
+                tri.vertices[1].pos = Vector4(vertices[f.b]);
+                tri.vertices[2].pos = Vector4(vertices[f.c]);
+                triangles.push_back(tri);
             }
         }
-    }    
+    }
+    mesh.SetTriangles(triangles);
 }
 
 
@@ -172,22 +178,13 @@ std::vector<Mesh> LoadGLTF(std::string filename)
         for (const auto& primitive : mesh.primitives)
         {
             Mesh _mesh;
-            vector<Vector3>& vertices = _mesh.GetVertices();
-            vector<Vector3i>& indices = _mesh.GetIndices();
-            vector<Vector3i>& normalIndices = _mesh.GetNormalIndices();
-            vector<Vector3i>& uvIndices = _mesh.GetUVIndices();
-            vector<Vector3>& normals = _mesh.GetNormals();
-            vector<Vector2>& uvs = _mesh.GetUVs();
+            vector<Vector3> vertices;
+            vector<Vector3i> indices;
+            vector<Vector3> normals;
+            vector<Vector2> uvs;
             vector<Vector4> weights;
             vector<Vector4i> joints;
-            vertices.clear();
-            indices.clear();
-            normalIndices.clear();
-            uvIndices.clear();
-            normals.clear();
-            uvs.clear();
-            weights.clear();
-            joints.clear();
+
             std::string name = mesh.name;
             if (primitive.attributes.count("POSITION"))
             {
@@ -244,7 +241,6 @@ std::vector<Mesh> LoadGLTF(std::string filename)
                     normals.push_back({data[v * 3 + 0], data[v * 3 + 1], data[v * 3 + 2]});
                 }
             }
-            uvIndices =  indices;
             if (primitive.attributes.count("TEXCOORD_0"))
             {
                 const auto& accessor = model.accessors[primitive.attributes.at("TEXCOORD_0")];
@@ -291,6 +287,32 @@ std::vector<Mesh> LoadGLTF(std::string filename)
                     weights.push_back({data[v * 4 + 0], data[v * 4 + 1], data[v * 4 + 2], data[v * 4 + 3]});
                 }
             }
+            
+            vector<Triangle> triangles;
+            for (auto& i : indices)
+            {
+                Triangle tri;
+                Vector4 v1 = Vector4(vertices[i.a]);
+                Vector4 v2 = Vector4(vertices[i.b]);
+                Vector4 v3 = Vector4(vertices[i.c]);
+                Vector4 n1 = Vector4(normals[i.a], 0.0f);
+                Vector4 n2 = Vector4(normals[i.b], 0.0f);
+                Vector4 n3 = Vector4(normals[i.c], 0.0f);
+                Vector2 uv1 = uvs[i.a];
+                Vector2 uv2 = uvs[i.b];
+                Vector2 uv3 = uvs[i.c];
+                tri.vertices[0].pos = v1;
+                tri.vertices[1].pos = v2;
+                tri.vertices[2].pos = v3;
+                tri.vertices[0].nor = n1;
+                tri.vertices[1].nor = n2;
+                tri.vertices[2].nor = n3;
+                tri.vertices[0].uv = uv1;
+                tri.vertices[1].uv = uv2;
+                tri.vertices[2].uv = uv3;
+                triangles.push_back(tri);
+            }
+            _mesh.SetTriangles(triangles);
             result.push_back(_mesh);
         }
     }
