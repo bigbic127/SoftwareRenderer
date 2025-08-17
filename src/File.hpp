@@ -8,12 +8,13 @@
 #include <tiny_gltf.h>
 
 #include <SDL.h>
-
+#include "Matrix.hpp"
 #include "Mesh.hpp"
 #include "Vector.hpp"
 #include "lodepng.h"
 #include "Joint.hpp"
 #include "Node.hpp"
+#include "Scene.hpp"
 
 using namespace std;
 
@@ -174,24 +175,32 @@ static void LoadObjFile(const string& path, Mesh& mesh)//, vector<Vector2D>& uvs
 }
 
 
-std::vector<Mesh> LoadGLTF(std::string filename)
+Scene LoadGLTF(std::string filename)
 {
-    std::vector<Mesh> result;
+    Scene scene;
     tinygltf::Model model;
     tinygltf::TinyGLTF loader;
     std::string err;
     std::string warn;
     bool res = loader.LoadBinaryFromFile(&model, &err, &warn, filename.c_str());//LoadASCIIFromFile
     if (!res)
-        return result;
+        return scene;
     for (const auto& node : model.nodes) {
         Node _node;
         if (!node.name.empty()) _node.name = node.name;
         if (!node.children.empty()) _node.children = node.children;
         if (!node.translation.empty()) _node.transform.SetPosition(Vector3(node.translation[0], node.translation[1], node.translation[2]));
-        if (!node.rotation.empty()) _node.transform.SetQuterian(Vector4(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]));
+        if (!node.rotation.empty()) _node.transform.SetQuterian(Quaternion(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]));
         if (!node.scale.empty()) _node.transform.SetScale(Vector3(node.scale[0], node.scale[1], node.scale[2]));
-        //if (!node.matrix.empty()) _node.matrix = node.matrix;
+        if (!node.matrix.empty())
+        {
+            Matrix4x4 m;
+            for (int row = 0; row < 4; row++)
+                for (int col = 0; col < 4; col++)
+                    m.m[row][col] = node.matrix[col * 4 + row]; 
+            _node.matrix = m;
+        }
+        scene.nodes.push_back(_node);
     }
     for (const auto& mesh : model.meshes)
     {
@@ -322,8 +331,44 @@ std::vector<Mesh> LoadGLTF(std::string filename)
                 _v.weights = weights[i];
                 vertex.push_back(_v);
             }
-            result.push_back(_mesh);
+            scene.meshes.push_back(_mesh);
         }
+    }
+    for (const auto& skin : model.skins)
+    {
+        Joint joint;
+        joint.name = skin.name;
+
+        // 본(joint) 인덱스
+        for (int index : skin.joints)
+        {
+            joint.children.push_back(index);
+        }
+
+        // 루트 본
+        joint.parent = skin.skeleton;
+
+        // Inverse Bind Matrices
+        if (skin.inverseBindMatrices > -1)
+        {
+            const auto& accessor = model.accessors[skin.inverseBindMatrices];
+            const auto& bufferView = model.bufferViews[accessor.bufferView];
+            const auto& buffer = model.buffers[bufferView.buffer];
+
+            const float* matrixData = reinterpret_cast<const float*>(
+                &buffer.data[bufferView.byteOffset + accessor.byteOffset]);
+
+            for (size_t i = 0; i < accessor.count; ++i)
+            {
+                Matrix4x4 m;
+                for (int r = 0; r < 4; ++r)
+                    for (int c = 0; c < 4; ++c)
+                        m.m[r][c] = matrixData[i * 16 + r * 4 + c];
+
+                joint.inverseBindMatrices.push_back(m);
+            }
+        }
+        scene.joints.push_back(joint);
     }
     for (const auto& anim : model.animations)
     {
@@ -388,8 +433,7 @@ std::vector<Mesh> LoadGLTF(std::string filename)
             }
             animation.channels.push_back(animChannel);
         }
-        std::cout << "  - Found " << animation.channels.size() << " channels." << std::endl;
-    }
-    
-    return result;
+        scene.animations.push_back(animation);
+    }    
+    return scene;
 }

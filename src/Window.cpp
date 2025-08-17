@@ -136,6 +136,8 @@ void Window::DrawGUI()
         {
 
         }
+        float frame;
+        ImGui::SliderFloat("KeyFrame", &frame, 0.0f, 1.0f);
 
         if (ImGui::IsWindowHovered())
         {

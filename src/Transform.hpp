@@ -11,10 +11,11 @@ class Transform
         Vector3 GetPosition()const{return position;}
         Vector3 GetRotation()const{return rotation;}
         Vector3 GetScale()const{return scale;}
+        Quaternion GetQuterian() {return quterian;}
         void SetPosition(Vector3 pos) {this->position = pos;}
         void SetRotation(Vector3 rot) {this->rotation = rot;}
         void SetScale(Vector3 s) {this->scale = s;}
-        void SetQuterian(Vector4 q) {this->quterian = q;}
+        void SetQuterian(Quaternion q) {this->quterian = q;}
 
         Vector3 GetRotateAroundAxis(const Vector3& v, const Vector3& axis, float angleRad)
         {
@@ -67,6 +68,6 @@ class Transform
     public:
         Vector3 position;
         Vector3 rotation;
-        Vector4 quterian;
+        Quaternion quterian;
         Vector3 scale = Vector3(1.0f, 1.0f ,1.0f);
 };

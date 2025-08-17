@@ -8,9 +8,8 @@
 
 struct Node
 {
-    public:
-        std::string name;
-        std::vector<int> children;
-        Transform transform;
-        Matrix4x4 matrix;
+    std::string name;
+    std::vector<int> children;
+    Transform transform;
+    Matrix4x4 matrix;
 };

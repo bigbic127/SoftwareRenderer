@@ -5,10 +5,10 @@
 #include "Matrix.hpp"
 #include "Transform.hpp"
 
-struct Joint {
+struct Joint
+{
     std::string name;
     int parent = -1;
     std::vector<int> children;
-    Transform Transform;
-    Matrix4x4 inverseBindMatrix;
+    std::vector<Matrix4x4> inverseBindMatrices;
 };

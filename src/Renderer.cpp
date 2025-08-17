@@ -10,9 +10,13 @@
 using namespace std;
 
 Renderer::Renderer()
-{
+{   
+    Init();
     Ready();
     Loop();
+}
+void Renderer::Init()
+{
 }
 
 void Renderer::Loop()
@@ -77,6 +81,10 @@ void Renderer::Render()
         vector<Vector3i>& indices = mesh.GetIndices();
         for(Vertex& vtx: vertex)
         {
+            //Bind Skin 작업
+            vtx.jointIndices;
+            vtx.weights;
+
             Vector4 v = vtx.pos;
             Vector4 model = mesh.GetTransform().GetMatrix() * v; //월드행렬 변환
             Vector4 view =  camera.GetViewMatrix() * model; //뷰행렬 변환
@@ -439,9 +447,8 @@ void Renderer::OpenObjFile()
         std::filesystem::path pngPath = path;
         if (objPath.extension() == ".glb")
         {
-            vector<Mesh> rMeshes;
-            rMeshes = LoadGLTF(path.string());
-            for (Mesh mesh : rMeshes)
+            scene = LoadGLTF(path.string());
+            for (Mesh mesh : scene.meshes)
                 meshes.push_back(mesh);
         }
         else if (objPath.extension() == ".obj")

@@ -5,11 +5,10 @@
 #include "Animation.hpp"
 #include <vector>
 
-class Scene
+struct Scene
 {
-    private:
-        vector<Node> nodes;
-        vector<Mesh> meshes;
-        vector<Joint> joints;
-        vector<Animation> animations;
+    vector<Node> nodes;
+    vector<Mesh> meshes;
+    vector<Joint> joints;
+    vector<Animation> animations;
 };
