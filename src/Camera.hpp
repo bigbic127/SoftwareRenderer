@@ -66,7 +66,7 @@ class Camera
         //절두체 6면
         vector<Vector4> ExtractFrustumPlanes()
         {
-            Matrix4x4 m = Perspective();
+            Matrix4x4 m;
             planes.clear();
             planes.push_back((m.GetRow(3) + m.GetRow(0)).Normalized()); // Left
             planes.push_back((m.GetRow(3) - m.GetRow(0)).Normalized()); // Right

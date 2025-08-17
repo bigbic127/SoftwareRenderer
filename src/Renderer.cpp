@@ -4,7 +4,7 @@
 #include "Camera.hpp"
 #include "File.hpp"
 #include "FileDialog.hpp"
-#include "Util.hpp"
+#include "Clipping.hpp"
 #include <cmath>
 
 using namespace std;
@@ -20,6 +20,7 @@ void Renderer::Loop()
     while(bIsLooping)
     {
         Input();
+        DrawGUI();
         Update();
         Render();
     }
@@ -71,6 +72,7 @@ void Renderer::Render()
         vector<Triangle>& triangles = mesh.GetTriangles();
         Vector3 cameraPosition = camera.GetPosition();
         vector<Vector4> planes = camera.GetFrustumPlanes();
+        vector<Triangle> clipTriangle;//클리핑
         //joint, weight 값 추가된 vertex, indices buffer 구조
         if (renderStruct == RenderStruct::Vertex)
         {
@@ -82,13 +84,8 @@ void Renderer::Render()
                 Vector4 model = mesh.GetTransform().GetMatrix() * v; //월드행렬 변환
                 Vector4 view =  camera.GetViewMatrix() * model; //뷰행렬 변환
                 Vector4 projection = camera.GetProjectionMatrix() * view; //프로젝션행렬 변환
-                Vector3 p = Vector3(projection.x/projection.w , projection.y/projection.w, projection.z/projection.w);//NDC 좌표계로 변환
-                //화면 중앙으로 위치
-                float screenX = (p.x * 0.5f + 0.5f) * width;
-                float screenY = (1.0f - (p.y * 0.5f + 0.5f)) * height;
-                float zdepth = p.z * 0.5f + 0.5f;
                 vtx.proj_m = Vector3(model.x, model.y, model.z);
-                vtx.proj_p = Vector3(screenX, screenY, zdepth);
+                vtx.proj_clip = projection;
             }
             for(Vector3i& index : indices)
             {
@@ -101,12 +98,32 @@ void Renderer::Render()
                 Vector3 normal = ((v2-v1).Cross(v3-v1)).Normalized();
                 if (normal.Dot(cameraDir) >= 0 && renderMode != RenderMode::Wireframe)
                     continue;
-                v1 = vertex[index.a].proj_p;
-                v2 = vertex[index.b].proj_p;
-                v3 = vertex[index.c].proj_p;
+                // 클리핑 계산
+                Triangle tri = {vertex[index.a], vertex[index.b], vertex[index.c]};
+                vector<Vector4> planes = camera.GetFrustumPlanes();
+                ClipTriangleAgainstFrustum(tri, planes, clipTriangle);
+            }
+            for (Triangle& tri : clipTriangle)
+            {
+                // 클리핑된 삼각형 NDC 좌표 변환
+                for (Vertex& vertice : tri.vertices)
+                {
+                    Vector4 projection = vertice.proj_clip;
+                    Vector3 p = Vector3(projection.x/projection.w , projection.y/projection.w, projection.z/projection.w);//NDC 좌표계로 변환
+                    float screenX = (p.x * 0.5f + 0.5f) * width;
+                    float screenY = (1.0f - (p.y * 0.5f + 0.5f)) * height;
+                    float zdepth = p.z * 0.5f + 0.5f;
+                    vertice.proj_p = Vector3(screenX, screenY, zdepth);
+                }
                 if (renderMode == RenderMode::Solid || renderMode == RenderMode::Shader)
                 {
                     //광원 및 색상
+                    Vector3 v1 = tri.vertices[0].proj_m;
+                    Vector3 v2 = tri.vertices[1].proj_m;
+                    Vector3 v3 = tri.vertices[2].proj_m;
+                    Vector3 triCenter = (v1 + v2 + v3) / 3.0f;
+                    Vector3 cameraDir = (triCenter - cameraPosition).Normalized();
+                    Vector3 normal = ((v2-v1).Cross(v3-v1)).Normalized();
                     float brightness = max(0.0f, normal.Dot(cameraDir * -1));
                     brightness *= 1.0f;
                     int gray = static_cast<int>(brightness * 255.0f);
@@ -117,15 +134,21 @@ void Renderer::Render()
                     mesh.GetColor() = 0xFF555555;
                 if (renderMode == RenderMode::Solid || renderMode == RenderMode::FloatData || renderMode == RenderMode::Shader)
                     {
-                        vector<Vector3> _proj_p = {v1, v2, v3};
-                        Vector2 uv1 = vertex[index.a].uv;
-                        Vector2 uv2 = vertex[index.b].uv;
-                        Vector2 uv3 = vertex[index.c].uv;
-                        vector<Vector2> _uvs = {uv1, uv2, uv3};
-                        DrawTriangle(_proj_p, _uvs, mesh);
+                        vector<Vector3> projectionPoints = {
+                            tri.vertices[0].proj_p,
+                            tri.vertices[1].proj_p,
+                            tri.vertices[2].proj_p};
+                        vector<Vector2> uvs = {
+                            tri.vertices[0].uv,
+                            tri.vertices[1].uv,
+                            tri.vertices[2].uv};
+                        DrawTriangle(projectionPoints, uvs, mesh);
                     }
                 if (renderMode == RenderMode::Wireframe || renderMode == RenderMode::FloatData)
                 {
+                    Vector3 v1 = tri.vertices[0].proj_p;
+                    Vector3 v2 = tri.vertices[1].proj_p;
+                    Vector3 v3 = tri.vertices[2].proj_p;
                     DrawLine(v1.toVector2i(), v2.toVector2i(), 0xFF00FFFF);
                     DrawLine(v2.toVector2i(), v3.toVector2i(), 0xFF00FFFF);
                     DrawLine(v1.toVector2i(), v3.toVector2i(), 0xFF00FFFF);
@@ -145,14 +168,9 @@ void Renderer::Render()
                 {
                     Vector4& v = vertice.pos;
                     Vector4 model = mesh.GetTransform().GetMatrix() * v; //월드행렬 변환
-                    Vector4 view =  camera.GetViewMatrix() * model; //뷰행렬 변환
-                    Vector4 projection = camera.GetProjectionMatrix() * view; //프로젝션행렬 변환
-                    Vector3 p = Vector3(projection.x/projection.w , projection.y/projection.w, projection.z/projection.w);//NDC 좌표계로 변환
-                    float screenX = (p.x * 0.5f + 0.5f) * width;
-                    float screenY = (1.0f - (p.y * 0.5f + 0.5f)) * height;
-                    float zdepth = p.z * 0.5f + 0.5f;
+                    Vector4 projection = camera.GetProjectionMatrix() * camera.GetViewMatrix() * model; //프로젝션행렬 변환
                     vertice.proj_m = Vector3(model.x, model.y, model.z);
-                    vertice.proj_p = Vector3(screenX, screenY, zdepth);
+                    vertice.proj_clip = projection;
                 }
                 //backface culling 계산
                 Vector3 v1 = tri.vertices[0].proj_m;
@@ -163,9 +181,31 @@ void Renderer::Render()
                 Vector3 normal = ((v2-v1).Cross(v3-v1)).Normalized();
                 if (normal.Dot(cameraDir) >= 0 && renderMode != RenderMode::Wireframe)
                     continue;
+                // 클리핑 계산
+                vector<Vector4> planes = camera.GetFrustumPlanes();
+                ClipTriangleAgainstFrustum(tri, planes, clipTriangle);
+            }
+            for (Triangle& tri : clipTriangle)
+            {
+                // 클리핑된 삼각형 NDC 좌표 변환
+                for (Vertex& vertice : tri.vertices)
+                {
+                    Vector4 projection = vertice.proj_clip;
+                    Vector3 p = Vector3(projection.x/projection.w , projection.y/projection.w, projection.z/projection.w);//NDC 좌표계로 변환
+                    float screenX = (p.x * 0.5f + 0.5f) * width;
+                    float screenY = (1.0f - (p.y * 0.5f + 0.5f)) * height;
+                    float zdepth = p.z * 0.5f + 0.5f;
+                    vertice.proj_p = Vector3(screenX, screenY, zdepth);
+                }
                 if (renderMode == RenderMode::Solid || renderMode == RenderMode::Shader)
                 {
                     //광원 및 색상
+                    Vector3 v1 = tri.vertices[0].proj_m;
+                    Vector3 v2 = tri.vertices[1].proj_m;
+                    Vector3 v3 = tri.vertices[2].proj_m;
+                    Vector3 triCenter = (v1 + v2 + v3) / 3.0f;
+                    Vector3 cameraDir = (triCenter - cameraPosition).Normalized();
+                    Vector3 normal = ((v2-v1).Cross(v3-v1)).Normalized();
                     float brightness = max(0.0f, normal.Dot(cameraDir * -1));
                     brightness *= 1.0f;
                     int gray = static_cast<int>(brightness * 255.0f);
@@ -179,7 +219,7 @@ void Renderer::Render()
                     vector<Vector3> projectionPoints = {
                         tri.vertices[0].proj_p,
                         tri.vertices[1].proj_p,
-                        tri.vertices[2].proj_p};                    
+                        tri.vertices[2].proj_p};
                     vector<Vector2> uvs = {
                         tri.vertices[0].uv,
                         tri.vertices[1].uv,
@@ -188,9 +228,9 @@ void Renderer::Render()
                 }
                 if (renderMode == RenderMode::Wireframe || renderMode == RenderMode::FloatData)
                 {
-                    v1 = tri.vertices[0].proj_p;
-                    v2 = tri.vertices[1].proj_p;
-                    v3 = tri.vertices[2].proj_p;
+                    Vector3 v1 = tri.vertices[0].proj_p;
+                    Vector3 v2 = tri.vertices[1].proj_p;
+                    Vector3 v3 = tri.vertices[2].proj_p;
                     DrawLine(v1.toVector2i(), v2.toVector2i(), 0xFFFF0000);
                     DrawLine(v2.toVector2i(), v3.toVector2i(), 0xFFFF0000);
                     DrawLine(v1.toVector2i(), v3.toVector2i(), 0xFFFF0000);
@@ -204,6 +244,7 @@ void Renderer::Render()
     //텍스쳐에 컬러버퍼에 들어있는 데이터 적용
     SDL_UpdateTexture(colorBufferTexture, nullptr, colorBuffer.get(), (int)(width * sizeof(uint32_t)));
     SDL_RenderCopy(renderer, colorBufferTexture, NULL, NULL);
+    ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);//ImGUI 그리기
     SDL_RenderPresent(renderer);
 }
 //인풋
@@ -240,6 +281,10 @@ void Renderer::ProcessInput(SDL_Event& event)
     case SDL_KEYUP:
         break;
     case SDL_MOUSEBUTTONDOWN:
+    {
+        ImGuiIO& io = ImGui::GetIO();
+        if (io.WantCaptureMouse)
+            break;
         if (event.button.button == SDL_BUTTON_LEFT)
         {
             bIsClicked = true;
@@ -256,6 +301,7 @@ void Renderer::ProcessInput(SDL_Event& event)
             targetPos = camera.GetTarget();
         }
         break;
+    }
     case SDL_MOUSEBUTTONUP:
         if (event.button.button == SDL_BUTTON_LEFT)
             bIsClicked = false;

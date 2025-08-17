@@ -44,6 +44,13 @@ bool Window::Initalization()
         width,
         height);
     SDL_Log("Surccese Initialization.\n");
+    //IMGUI 초기화
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO&io=ImGui::GetIO();
+    ImGui::StyleColorsLight();
+    ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
+    ImGui_ImplSDLRenderer2_Init(renderer);
     return true;
 }
 
@@ -51,6 +58,7 @@ bool Window::Initalization()
 void Window::Input()
 {
     SDL_PollEvent(&event);
+    ImGui_ImplSDL2_ProcessEvent(&event);
     ProcessInput(event);
     switch (event.type)
     {
@@ -91,9 +99,67 @@ void Window::ResizeBuffers(int w, int h)
     );
 }
 
+void Window::DrawGUI()
+{
+    // ImGui 새 프레임 시작
+    ImGui_ImplSDLRenderer2_NewFrame();
+    ImGui_ImplSDL2_NewFrame();
+    ImGui::NewFrame();
+    {
+        ImGuiIO&io=ImGui::GetIO();
+        ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2(350, 100), ImGuiCond_Always);
+        ImGui::Begin("Panel", nullptr,
+                    ImGuiWindowFlags_NoMove |
+                    ImGuiWindowFlags_NoResize |
+                    ImGuiWindowFlags_NoCollapse |
+                    ImGuiWindowFlags_NoTitleBar);
+
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+        if (ImGui::Button("wireframe"))
+        {
+
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("flat"))
+        {
+
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Solid"))
+        {
+
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Shader"))
+        {
+
+        }
+
+        if (ImGui::IsWindowHovered())
+        {
+            io.WantCaptureKeyboard = true;
+            io.WantCaptureMouse = true;
+        }
+        else
+        {
+            io.WantCaptureKeyboard = false;
+            io.WantCaptureMouse = false;
+        }
+        
+                    
+        ImGui::End();
+    }
+    ImGui::Render();
+}
+
 //프로그램 종료 - 메모리 해제
 void Window::Quit()
 {
+    ImGui_ImplSDLRenderer2_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
     SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyTexture(colorBufferTexture);

@@ -1,6 +1,9 @@
 #pragma once
 
 #include <SDL.h>
+#include "imgui.h"
+#include "imgui_impl_sdl2.h"
+#include "imgui_impl_sdlrenderer2.h"
 #include <memory>
 #include <tuple>
 
@@ -10,6 +13,7 @@ public:
     Window(int w=1280, int h=720);
     bool Initalization();
     void Input();
+    void DrawGUI();
     void Quit();
     void SetWindowSize(int w, int h) {width = w; height = h;}
     void ResizeBuffers(int w, int h);
@@ -23,6 +27,7 @@ protected:
     SDL_Event event;
     int width;
     int height;
+    bool bHovered = false;
 };
 
 

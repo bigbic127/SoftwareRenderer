@@ -3,8 +3,6 @@
 #include <cmath>
 #include <string>
 
-class Matrix4x4;
-
 class Vector2
 {
     public:
@@ -30,6 +28,14 @@ class Vector2
         float Dot(const Vector2& vec) const
         {
             return x * vec.x + y * vec.y;
+        }
+        Vector2 Lerp(const Vector2& v, float t)
+        {
+            return
+            {
+                x + (v.x - x) * t,
+                y + (v.y - y) * t
+            };
         }
     public:
         float x, y;
@@ -82,6 +88,15 @@ class Vector3
             if (len == 0) return Vector3(0,0,0);
             return (*this) / len;
         }
+        Vector3 Lerp(const Vector3& v, float t)
+        {
+            return
+            {
+                x + (v.x - x) * t,
+                y + (v.y - y) * t,
+                z + (v.z - z) * t
+            };
+        }
         Vector2 toVector2i() const{return Vector2(int(x), int(y));}
         Vector2 toVector2() const{return Vector2(x, y);}
     public:
@@ -124,6 +139,16 @@ class Vector4
         {
             return std::sqrt(x*x + y*y + z*z + w*w);
         }
+        Vector4 Lerp(const Vector4& v, float t)
+        {
+            return
+            {
+                x + (v.x - x) * t,
+                y + (v.y - y) * t,
+                z + (v.z - z) * t,
+                w + (v.w - w) * t
+            };
+        }
         Vector4 Normalized() const
         {
             float len = Length();
@@ -142,4 +167,13 @@ class Vector4i
         Vector4i(int _x, int _y, int _z, int _w) : x(_x), y(_y), z(_z), w(_w){}
     public:
         int x, y, z, w;
+};
+
+class Quaternion
+{
+    public:
+        Quaternion() : x(0), y(0), z(0), w(0){}
+        Quaternion(float _x, float _y, float _z, float _w) : x(_x), y(_y), z(_z), w(_w){}
+    public:
+        float x, y, z, w;
 };

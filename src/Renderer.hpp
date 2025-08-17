@@ -17,8 +17,8 @@ enum class RenderMode
 {
     Wireframe,   // 와이어프레임 그리기
     FloatData,   // float 값 시각화 (ex. Z-depth, Normal length 등)
-    Shader,      // 셰이더 기반 조명/컬러 렌더링
-    Solid        // 일반 렌더링 (기본 컬러 또는 텍스처)
+    Solid,       // 일반 렌더링 (기본 컬러 또는 텍스처)
+    Shader       // 셰이더 기반 조명/컬러 렌더링
 };
 
 class Renderer : public Window

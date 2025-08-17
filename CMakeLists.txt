@@ -12,6 +12,7 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 include(FetchContent)
+#tiny gltf
 FetchContent_Declare(
     gltf
     GIT_REPOSITORY https://github.com/syoyo/tinygltf.git
@@ -25,6 +26,7 @@ add_library(GLTF_LIB STATIC ${GLTF_SRC})
 target_include_directories(GLTF_LIB PUBLIC
     ${gltf_SOURCE_DIR}
 )
+#SDL
 FetchContent_Declare(
     sdl2
     GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
@@ -32,17 +34,41 @@ FetchContent_Declare(
 )
 set(BUILD_SHARED_LIBS ON)
 FetchContent_MakeAvailable(sdl2)
-
+#ImGUI
+FetchContent_Declare(
+    imgui
+    GIT_REPOSITORY https://github.com/ocornut/imgui.git
+    GIT_TAG v1.92.1
+)
+FetchContent_MakeAvailable(imgui)
+set(IMGUI_SRC
+    ${imgui_SOURCE_DIR}/imgui.cpp
+    ${imgui_SOURCE_DIR}/imgui_draw.cpp
+    ${imgui_SOURCE_DIR}/imgui_internal.h
+    ${imgui_SOURCE_DIR}/imgui_tables.cpp
+    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+    ${imgui_SOURCE_DIR}/imstb_rectpack.h
+    ${imgui_SOURCE_DIR}/imstb_textedit.h
+    ${imgui_SOURCE_DIR}/imstb_truetype.h
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl2.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_sdlrenderer2.cpp
+    ${imgui_SOURCE_DIR}/imconfig.h
+)
+add_library(IMGUI_LIB STATIC ${IMGUI_SRC})
+target_include_directories(IMGUI_LIB PUBLIC
+    ${imgui_SOURCE_DIR}
+    ${imgui_SOURCE_DIR}/backends
+)
+target_link_libraries(IMGUI_LIB PUBLIC SDL2 SDL2main)
 if(APPLE)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_SOURCE_DIR}/bin)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_SOURCE_DIR}/bin)
-    target_link_libraries(${PROJECT_NAME} PRIVATE SDL2)
+    target_link_libraries(${PROJECT_NAME} PRIVATE IMGUI_LIB)
 
 elseif(WIN32)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
     target_link_libraries(${PROJECT_NAME} PRIVATE
-        SDL2
-        SDL2main
+        IMGUI_LIB
         GLTF_LIB
     )
 endif()

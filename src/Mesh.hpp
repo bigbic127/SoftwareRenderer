@@ -22,6 +22,7 @@ class Vertex
         Vector4i jointIndices;
         Vector4 weights;
         Vector3 proj_m;
+        Vector4 proj_clip;
         Vector3 proj_p;
 };
 
