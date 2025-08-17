@@ -92,8 +92,9 @@ void Renderer::Render()
                 {
                     int j = jointIndices[i];
                     float w = weightValues[i];
+                    int _j = scene.joints[0].children[j];
                     if (w > 0.0f)
-                        skinned =  skinned + ((scene.nodes[j].transform.GetMatrix() * v) * w);
+                        skinned =  skinned + ((scene.nodes[_j].transform.GetQuatMatrix() * v) * w);
                 }
                 v = Vector4(skinned.x, skinned.y, skinned.z, 1.0f);
             }

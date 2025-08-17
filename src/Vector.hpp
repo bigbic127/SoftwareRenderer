@@ -174,6 +174,20 @@ class Quaternion
     public:
         Quaternion() : x(0), y(0), z(0), w(0){}
         Quaternion(float _x, float _y, float _z, float _w) : x(_x), y(_y), z(_z), w(_w){}
+        Quaternion operator/(float scalar) const
+        {
+            return Quaternion(x / scalar, y / scalar, z / scalar, w / scalar);
+        }
+        float Length() const
+        {
+            return std::sqrt(x*x + y*y + z*z + w*w);
+        }
+        Quaternion Normalized() const
+        {
+            float len = Length();
+            if (len == 0) return Quaternion(0,0,0,0);
+            return (*this) / len;
+        }
     public:
         float x, y, z, w;
 };

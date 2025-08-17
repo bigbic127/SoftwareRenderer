@@ -25,6 +25,8 @@ class Transform
             return v * cosTheta + k.Cross(v) * sinTheta + k * k.Dot(v) * (1 - cosTheta);
         }
         Matrix4x4 GetMatrix(){return Translation() * Rotation() * Scale();}
+        Matrix4x4 GetQuatMatrix(){return Translation() * QuatRotation() * Scale();}
+
     private:
         Matrix4x4 Translation()
         {
@@ -57,6 +59,39 @@ class Transform
             rz.m[1][1] = cr;
             return rz * ry * rx; 
         }
+        Matrix4x4 QuatRotation()
+        {
+            Quaternion n = quterian.Normalized();
+            float xx = n.x * n.x;
+            float yy = n.y * n.y;
+            float zz = n.z * n.z;
+            float xy = n.x * n.y;
+            float xz = n.x * n.z;
+            float yz = n.y * n.z;
+            float wx = n.w * n.x;
+            float wy = n.w * n.y;
+            float wz = n.w * n.z;
+            Matrix4x4 R;
+            R.m[0][0] = 1.0f - 2.0f * (yy + zz);
+            R.m[0][1] = 2.0f * (xy - wz);
+            R.m[0][2] = 2.0f * (xz + wy);
+            R.m[0][3] = 0.0f;
+            R.m[1][0] = 2.0f * (xy + wz);
+            R.m[1][1] = 1.0f - 2.0f * (xx + zz);
+            R.m[1][2] = 2.0f * (yz - wx);
+            R.m[1][3] = 0.0f;
+            R.m[2][0] = 2.0f * (xz - wy);
+            R.m[2][1] = 2.0f * (yz + wx);
+            R.m[2][2] = 1.0f - 2.0f * (xx + yy);
+            R.m[2][3] = 0.0f;
+            R.m[3][0] = 0.0f;
+            R.m[3][1] = 0.0f;
+            R.m[3][2] = 0.0f;
+            R.m[3][3] = 1.0f;
+            return R;
+        }
+
+
         Matrix4x4 Scale()
         {
             Matrix4x4 mat;
