@@ -44,7 +44,6 @@ class Mesh
 {
     public:
         Mesh() {Cube();}
-        void SetTriangles(vector<Triangle> tri) {triangles = tri;}
         vector<Triangle>& GetTriangles() {return triangles;}
         vector<Vertex>& GetVertex() {return vertex;}
         vector<Vector3i>& GetIndices() {return indices;}
@@ -57,9 +56,7 @@ class Mesh
         void Sphere(int stacks = 32, int slices = 32, float radius = 1.0f);
     private:
         Node node;
-        // triangle (구조 파악용)
         vector<Triangle> triangles;
-        //vertex, indices buffer
         vector<Vertex> vertex;
         vector<Vector3i> indices;
         uint32_t color = 0xFF555555;

@@ -53,7 +53,6 @@ static void LoadObjFile(const string& path, Mesh& mesh)//, vector<Vector2D>& uvs
         SDL_Log("Faild to open file. path:%s\n", path.c_str());
         return;
     }
-    vector<Triangle> triangles;
     vector<Vertex>& vertex = mesh.GetVertex();
     vector<Vector3i>& indices = mesh.GetIndices();
     vector<Vector3> vertices;
@@ -128,59 +127,17 @@ static void LoadObjFile(const string& path, Mesh& mesh)//, vector<Vector2D>& uvs
                 indices.push_back(point);
                 indices_nor.push_back(normal);
                 indices_uv.push_back(uv);
-                tri.vertices[0].pos = Vector4(vertices[point.a]);
-                tri.vertices[1].pos = Vector4(vertices[point.b]);
-                tri.vertices[2].pos = Vector4(vertices[point.c]);
-                tri.vertices[0].nor = Vector4(normals[normal.a], 0.0f);
-                tri.vertices[1].nor = Vector4(normals[normal.b], 0.0f);
-                tri.vertices[2].nor = Vector4(normals[normal.c], 0.0f);
-                tri.vertices[0].uv = uvs[uv.a];
-                tri.vertices[1].uv = uvs[uv.b];
-                tri.vertices[2].uv = uvs[uv.c];
-                triangles.push_back(tri);
-
             }else
             {
-                Triangle tri;
                 Vector3i f;
                 iss >> f.a >> f.b >> f.c;
                 f.a -=1;
                 f.b -=1;
                 f.c -=1;
                 indices.push_back(f);
-                tri.vertices[0].pos = Vector4(vertices[f.a]);
-                tri.vertices[1].pos = Vector4(vertices[f.b]);
-                tri.vertices[2].pos = Vector4(vertices[f.c]);
-                triangles.push_back(tri);
             }
         }
     }
-    mesh.SetTriangles(triangles);
-    //indices에 맞게 UV,Normal 수정
-    vector<Vector3> newNormals;
-    vector<Vector2> newuvs;
-    newNormals.resize(vertices.size());
-    newuvs.resize(vertices.size());
-    for (size_t i = 0; i < indices.size(); i++)
-    {
-        Vector3i iv = indices[i];
-        Vector3i in = indices_nor[i];
-        Vector3i iu = indices_uv[i];
-        Vector3 nn1 = normals[in.a];
-        Vector3 nn2 = normals[in.b];
-        Vector3 nn3 = normals[in.c];
-        Vector2 un1 = uvs[iu.a];
-        Vector2 un2 = uvs[iu.b];
-        Vector2 un3 = uvs[iu.c];
-        newNormals[iv.a] = nn1;
-        newNormals[iv.b] = nn2;
-        newNormals[iv.c] = nn3;
-        newuvs[iv.a] = un1;
-        newuvs[iv.b] = un2;
-        newuvs[iv.c] = un3;
-    }
-    normals = newNormals;
-    uvs = newuvs;
     //Vertex 구조
     for (size_t i = 0; i < vertices.size(); i++)
     {
@@ -220,7 +177,7 @@ std::vector<Mesh> LoadGLTF(std::string filename)
             Mesh _mesh;
             vector<Vertex>& vertex = _mesh.GetVertex();
             vector<Vector3i>& indices = _mesh.GetIndices();
-            vector<Vector3> vertices ;
+            vector<Vector3> vertices;
             vector<Vector3> normals;
             vector<Vector2> uvs;
             vector<Vector4> weights;
@@ -341,32 +298,6 @@ std::vector<Mesh> LoadGLTF(std::string filename)
                 _v.weights = weights[i];
                 vertex.push_back(_v);
             }
-            // Triangle 구조
-            vector<Triangle> triangles;
-            for (auto& i : indices)
-            {
-                Triangle tri;
-                Vector4 v1 = Vector4(vertices[i.a]);
-                Vector4 v2 = Vector4(vertices[i.b]);
-                Vector4 v3 = Vector4(vertices[i.c]);
-                Vector4 n1 = Vector4(normals[i.a], 0.0f);
-                Vector4 n2 = Vector4(normals[i.b], 0.0f);
-                Vector4 n3 = Vector4(normals[i.c], 0.0f);
-                Vector2 uv1 = uvs[i.a];
-                Vector2 uv2 = uvs[i.b];
-                Vector2 uv3 = uvs[i.c];
-                tri.vertices[0].pos = v1;
-                tri.vertices[1].pos = v2;
-                tri.vertices[2].pos = v3;
-                tri.vertices[0].nor = n1;
-                tri.vertices[1].nor = n2;
-                tri.vertices[2].nor = n3;
-                tri.vertices[0].uv = uv1;
-                tri.vertices[1].uv = uv2;
-                tri.vertices[2].uv = uv3;
-                triangles.push_back(tri);
-            }
-            _mesh.SetTriangles(triangles);
             result.push_back(_mesh);
         }
     }

@@ -2,7 +2,6 @@
 
 void Mesh::Cube()
 {
-    triangles.clear();
     vertex.clear();
     indices.clear();
     vector<Vector3> vertices;
@@ -58,103 +57,10 @@ void Mesh::Cube()
         v.uv = uvs[i];
         vertex.push_back(v);
     }
-    // Triangle 구조
-    Triangle tri;
-    // 앞
-    tri.vertices[0].pos = Vector4(-1, 1, -1, 1.0f);
-    tri.vertices[1].pos = Vector4(1, -1, -1, 1.0f);
-    tri.vertices[2].pos = Vector4(-1, -1, -1, 1.0f);
-    tri.vertices[0].uv = Vector2(0.0f, 1.0f);
-    tri.vertices[1].uv = Vector2(1.0f, 0.0f);
-    tri.vertices[2].uv = Vector2(0.0f, 0.0f);
-    triangles.push_back(tri);
-    tri.vertices[0].pos = Vector4(-1, 1, -1, 1.0f);
-    tri.vertices[1].pos = Vector4(1, 1, -1, 1.0f);
-    tri.vertices[2].pos = Vector4(1, -1, -1, 1.0f);
-    tri.vertices[0].uv = Vector2(0.0f, 1.0f);
-    tri.vertices[1].uv = Vector2(1.0f, 1.0f);
-    tri.vertices[2].uv = Vector2(1.0f, 0.0f);
-    triangles.push_back(tri);
-    // 뒤
-    tri.vertices[0].pos = Vector4(-1, -1, 1, 1.0f);
-    tri.vertices[1].pos = Vector4(1, 1, 1, 1.0f);
-    tri.vertices[2].pos = Vector4(-1, 1, 1, 1.0f);
-    tri.vertices[0].uv = Vector2(0.0f, 0.0f);
-    tri.vertices[1].uv = Vector2(1.0f, 1.0f);
-    tri.vertices[2].uv = Vector2(0.0f, 1.0f);
-    triangles.push_back(tri);
-    tri.vertices[0].pos = Vector4(-1, -1, 1, 1.0f);
-    tri.vertices[1].pos = Vector4(1, -1, 1, 1.0f);
-    tri.vertices[2].pos = Vector4(1, 1, 1, 1.0f);
-    tri.vertices[0].uv = Vector2(0.0f, 0.0f);
-    tri.vertices[1].uv = Vector2(1.0f, 0.0f);
-    tri.vertices[2].uv = Vector2(1.0f, 1.0f);
-    triangles.push_back(tri);
-    // 오른쪽
-    tri.vertices[0].pos = Vector4(1, 1, -1, 1.0f);
-    tri.vertices[1].pos = Vector4(1, -1, 1, 1.0f);
-    tri.vertices[2].pos = Vector4(1, -1, -1, 1.0f);
-    tri.vertices[0].uv = Vector2(0.0f, 1.0f);
-    tri.vertices[1].uv = Vector2(1.0f, 0.0f);
-    tri.vertices[2].uv = Vector2(0.0f, 0.0f);
-    triangles.push_back(tri);
-    tri.vertices[0].pos = Vector4(1, 1, -1, 1.0f);
-    tri.vertices[1].pos = Vector4(1, 1, 1, 1.0f);
-    tri.vertices[2].pos = Vector4(1, -1, 1, 1.0f);
-    tri.vertices[0].uv = Vector2(0.0f, 1.0f);
-    tri.vertices[1].uv = Vector2(1.0f, 1.0f);
-    tri.vertices[2].uv = Vector2(1.0f, 0.0f);
-    triangles.push_back(tri);
-    // 왼쪽
-    tri.vertices[0].pos = Vector4(-1, 1, 1, 1.0f);
-    tri.vertices[1].pos = Vector4(-1, -1, -1, 1.0f);
-    tri.vertices[2].pos = Vector4(-1, -1, 1, 1.0f);
-    tri.vertices[0].uv = Vector2(0.0f, 1.0f);
-    tri.vertices[1].uv = Vector2(1.0f, 0.0f);
-    tri.vertices[2].uv = Vector2(0.0f, 0.0f);
-    triangles.push_back(tri);
-    tri.vertices[0].pos = Vector4(-1, 1, 1, 1.0f);
-    tri.vertices[1].pos = Vector4(-1, 1, -1, 1.0f);
-    tri.vertices[2].pos = Vector4(-1, -1, -1, 1.0f);
-    tri.vertices[0].uv = Vector2(0.0f, 1.0f);
-    tri.vertices[1].uv = Vector2(1.0f, 1.0f);
-    tri.vertices[2].uv = Vector2(1.0f, 0.0f);
-    triangles.push_back(tri);
-    // 위
-    tri.vertices[0].pos = Vector4(-1, 1, 1, 1.0f);
-    tri.vertices[1].pos = Vector4(1, 1, 1, 1.0f);
-    tri.vertices[2].pos = Vector4(-1, 1, -1, 1.0f);
-    tri.vertices[0].uv = Vector2(0.0f, 1.0f);
-    tri.vertices[1].uv = Vector2(1.0f, 1.0f);
-    tri.vertices[2].uv = Vector2(0.0f, 0.0f);
-    triangles.push_back(tri);
-    tri.vertices[0].pos = Vector4(1, 1, 1, 1.0f);
-    tri.vertices[1].pos = Vector4(1, 1, -1, 1.0f);
-    tri.vertices[2].pos = Vector4(-1, 1, -1, 1.0f);
-    tri.vertices[0].uv = Vector2(1.0f, 1.0f);
-    tri.vertices[1].uv = Vector2(1.0f, 0.0f);
-    tri.vertices[2].uv = Vector2(0.0f, 0.0f);
-    triangles.push_back(tri);
-    // 아래
-    tri.vertices[0].pos = Vector4(-1, -1, -1, 1.0f);
-    tri.vertices[1].pos = Vector4(1, -1, -1, 1.0f);
-    tri.vertices[2].pos = Vector4(-1, -1, 1, 1.0f);
-    tri.vertices[0].uv = Vector2(0.0f, 0.0f);
-    tri.vertices[1].uv = Vector2(1.0f, 0.0f);
-    tri.vertices[2].uv = Vector2(0.0f, 1.0f);
-    triangles.push_back(tri);
-    tri.vertices[0].pos = Vector4(1, -1, -1, 1.0f);
-    tri.vertices[1].pos = Vector4(1, -1, 1, 1.0f);
-    tri.vertices[2].pos = Vector4(-1, -1, 1, 1.0f);
-    tri.vertices[0].uv = Vector2(1.0f, 0.0f);
-    tri.vertices[1].uv = Vector2(1.0f, 1.0f);
-    tri.vertices[2].uv = Vector2(0.0f, 1.0f);
-    triangles.push_back(tri);
 }
 
 void Mesh::Sphere(int stacks, int slices, float radius)
 {
-    triangles.clear();
     vertex.clear();
     indices.clear();
     vector<Vector3> vertices;
@@ -196,24 +102,5 @@ void Mesh::Sphere(int stacks, int slices, float radius)
         v.pos = Vector4(vertices[i]);
         v.uv = uvs[i];
         vertex.push_back(v);
-    }
-    // Triangle 구조
-    for (const Vector3i& i : indices)
-    {
-        Triangle tri;
-        Vector3 v1 = vertices[i.a];
-        Vector3 v2 = vertices[i.b];
-        Vector3 v3 = vertices[i.c];
-        Vector2 uv1 = uvs[i.a];
-        Vector2 uv2 = uvs[i.b];
-        Vector2 uv3 = uvs[i.c];
-
-        tri.vertices[0].pos = v1;
-        tri.vertices[1].pos = v2;
-        tri.vertices[2].pos = v3;
-        tri.vertices[0].uv = uv1;
-        tri.vertices[1].uv = uv2;
-        tri.vertices[2].uv = uv3;
-        triangles.push_back(tri);
     }
 }

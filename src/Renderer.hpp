@@ -7,12 +7,6 @@
 
 using namespace std;
 
-enum class RenderStruct 
-{
-    Vertex,
-    Triangle
-};
-
 enum class RenderMode 
 {
     Wireframe,   // 와이어프레임 그리기
@@ -60,5 +54,4 @@ class Renderer : public Window
         Vector2 screenPos;
         Vector3 screenOriPos;
         Vector3 targetPos;
-        RenderStruct renderStruct = RenderStruct::Vertex;
 };
