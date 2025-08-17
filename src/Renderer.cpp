@@ -81,11 +81,22 @@ void Renderer::Render()
         vector<Vector3i>& indices = mesh.GetIndices();
         for(Vertex& vtx: vertex)
         {
-            //Bind Skin 작업
-            vtx.jointIndices;
-            vtx.weights;
-
             Vector4 v = vtx.pos;
+            //Bind Skin 작업
+            if (scene.joints.size()>0)
+            {
+                std::array<int, 4> jointIndices = {vtx.jointIndices.x, vtx.jointIndices.y, vtx.jointIndices.z, vtx.jointIndices.w};
+                std::array<float, 4> weightValues = {vtx.weights.x, vtx.weights.y, vtx.weights.z, vtx.weights.w};
+                Vector4 skinned;
+                for(size_t i=0; i < 4; i++)
+                {
+                    int j = jointIndices[i];
+                    float w = weightValues[i];
+                    if (w > 0.0f)
+                        skinned =  skinned + ((scene.nodes[j].transform.GetMatrix() * v) * w);
+                }
+                v = Vector4(skinned.x, skinned.y, skinned.z, 1.0f);
+            }
             Vector4 model = mesh.GetTransform().GetMatrix() * v; //월드행렬 변환
             Vector4 view =  camera.GetViewMatrix() * model; //뷰행렬 변환
             Vector4 projection = camera.GetProjectionMatrix() * view; //프로젝션행렬 변환
