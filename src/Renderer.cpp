@@ -458,18 +458,15 @@ void Renderer::OpenObjFile()
     Vector3 maxBound = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
     for (Mesh& mesh : meshes)
     {
-        for (const Triangle& tri : mesh.GetTriangles())
+        for (const Vertex& v : mesh.GetVertex())
         {
-            for (const Vertex& v : tri.vertices)
-            {
-                minBound.x = std::min(minBound.x, v.pos.x);
-                minBound.y = std::min(minBound.y, v.pos.y);
-                minBound.z = std::min(minBound.z, v.pos.z);
-                maxBound.x = std::max(maxBound.x, v.pos.x);
-                maxBound.y = std::max(maxBound.y, v.pos.y);
-                maxBound.z = std::max(maxBound.z, v.pos.z);
-            }
-        }
+            minBound.x = std::min(minBound.x, v.pos.x);
+            minBound.y = std::min(minBound.y, v.pos.y);
+            minBound.z = std::min(minBound.z, v.pos.z);
+            maxBound.x = std::max(maxBound.x, v.pos.x);
+            maxBound.y = std::max(maxBound.y, v.pos.y);
+            maxBound.z = std::max(maxBound.z, v.pos.z);
+        }        
     }
     Vector3 size = minBound - maxBound;
     Vector3 center = (minBound + maxBound) * 0.5f;

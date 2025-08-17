@@ -97,7 +97,6 @@ static void LoadObjFile(const string& path, Mesh& mesh)//, vector<Vector2D>& uvs
                 for (int i = 0; i < 3; ++i) {
                     iss >> vIdx[i] >> slash >> vtIdx[i] >> slash >> vnIdx[i];
                 }
-                Triangle tri;
                 Vector3i point;
                 Vector3i normal;
                 Vector3i uv;
@@ -138,6 +137,31 @@ static void LoadObjFile(const string& path, Mesh& mesh)//, vector<Vector2D>& uvs
             }
         }
     }
+    //indices에 맞게 UV,Normal 수정
+    vector<Vector3> newNormals;
+    vector<Vector2> newuvs;
+    newNormals.resize(vertices.size());
+    newuvs.resize(vertices.size());
+    for (size_t i = 0; i < indices.size(); i++)
+    {
+        Vector3i iv = indices[i];
+        Vector3i in = indices_nor[i];
+        Vector3i iu = indices_uv[i];
+        Vector3 nn1 = normals[in.a];
+        Vector3 nn2 = normals[in.b];
+        Vector3 nn3 = normals[in.c];
+        Vector2 un1 = uvs[iu.a];
+        Vector2 un2 = uvs[iu.b];
+        Vector2 un3 = uvs[iu.c];
+        newNormals[iv.a] = nn1;
+        newNormals[iv.b] = nn2;
+        newNormals[iv.c] = nn3;
+        newuvs[iv.a] = un1;
+        newuvs[iv.b] = un2;
+        newuvs[iv.c] = un3;
+    }
+    normals = newNormals;
+    uvs = newuvs;
     //Vertex 구조
     for (size_t i = 0; i < vertices.size(); i++)
     {
@@ -177,7 +201,7 @@ std::vector<Mesh> LoadGLTF(std::string filename)
             Mesh _mesh;
             vector<Vertex>& vertex = _mesh.GetVertex();
             vector<Vector3i>& indices = _mesh.GetIndices();
-            vector<Vector3> vertices;
+            vector<Vector3> vertices ;
             vector<Vector3> normals;
             vector<Vector2> uvs;
             vector<Vector4> weights;
