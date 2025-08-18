@@ -61,34 +61,38 @@ class Transform
         }
         Matrix4x4 QuatRotation()
         {
-            Quaternion n = quterian.Normalized();
-            float xx = n.x * n.x;
-            float yy = n.y * n.y;
-            float zz = n.z * n.z;
-            float xy = n.x * n.y;
-            float xz = n.x * n.z;
-            float yz = n.y * n.z;
-            float wx = n.w * n.x;
-            float wy = n.w * n.y;
-            float wz = n.w * n.z;
-            Matrix4x4 R;
-            R.m[0][0] = 1.0f - 2.0f * (yy + zz);
-            R.m[0][1] = 2.0f * (xy - wz);
-            R.m[0][2] = 2.0f * (xz + wy);
-            R.m[0][3] = 0.0f;
-            R.m[1][0] = 2.0f * (xy + wz);
-            R.m[1][1] = 1.0f - 2.0f * (xx + zz);
-            R.m[1][2] = 2.0f * (yz - wx);
-            R.m[1][3] = 0.0f;
-            R.m[2][0] = 2.0f * (xz - wy);
-            R.m[2][1] = 2.0f * (yz + wx);
-            R.m[2][2] = 1.0f - 2.0f * (xx + yy);
-            R.m[2][3] = 0.0f;
-            R.m[3][0] = 0.0f;
-            R.m[3][1] = 0.0f;
-            R.m[3][2] = 0.0f;
-            R.m[3][3] = 1.0f;
-            return R;
+            Quaternion q = quterian.Normalized();
+            double x2 = q.x * q.x;
+            double y2 = q.y * q.y;
+            double z2 = q.z * q.z;
+            double xy = q.x * q.y;
+            double xz = q.x * q.z;
+            double yz = q.y * q.z;
+            double wx = q.w * q.x;
+            double wy = q.w * q.y;
+            double wz = q.w * q.z;
+            Matrix4x4 m;
+            // 1열
+            m.m[0][0] = 1.0 - 2.0 * (y2 + z2);
+            m.m[0][1] = 2.0 * (xy + wz);
+            m.m[0][2] = 2.0 * (xz - wy);
+            m.m[0][3] = 0.0;
+            // 2열
+            m.m[1][0] = 2.0 * (xy - wz);
+            m.m[1][1] = 1.0 - 2.0 * (x2 + z2);
+            m.m[1][2] = 2.0 * (yz + wx);
+            m.m[1][3] = 0.0;
+            // 3열
+            m.m[2][0] = 2.0 * (xz + wy);
+            m.m[2][1] = 2.0 * (yz - wx);
+            m.m[2][2] = 1.0 - 2.0 * (x2 + y2);
+            m.m[2][3] = 0.0;
+            // 4열
+            m.m[3][0] = 0.0;
+            m.m[3][1] = 0.0;
+            m.m[3][2] = 0.0;
+            m.m[3][3] = 1.0;
+            return m;
         }
 
 
