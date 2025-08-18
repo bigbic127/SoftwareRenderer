@@ -2,10 +2,9 @@
 
 #include "Matrix.hpp"
 #include "Vector.hpp"
-#include <cmath>
 
-
-#define DEG2RAD(x) ((x) * M_PI / 180.0f)
+constexpr double PI = 3.14159265358979323846;
+#define DEG2RAD(x) ((x) * PI / 180.0f)
 
 class Transform
 {
@@ -74,17 +73,17 @@ class Transform
             Matrix4x4 m;
             // 1열
             m.m[0][0] = 1.0 - 2.0 * (y2 + z2);
-            m.m[0][1] = 2.0 * (xy + wz);
-            m.m[0][2] = 2.0 * (xz - wy);
+            m.m[0][1] = 2.0 * (xy - wz);
+            m.m[0][2] = 2.0 * (xz + wy);
             m.m[0][3] = 0.0;
             // 2열
-            m.m[1][0] = 2.0 * (xy - wz);
+            m.m[1][0] = 2.0 * (xy + wz);
             m.m[1][1] = 1.0 - 2.0 * (x2 + z2);
-            m.m[1][2] = 2.0 * (yz + wx);
+            m.m[1][2] = 2.0 * (yz - wx);
             m.m[1][3] = 0.0;
             // 3열
-            m.m[2][0] = 2.0 * (xz + wy);
-            m.m[2][1] = 2.0 * (yz - wx);
+            m.m[2][0] = 2.0 * (xz - wy);
+            m.m[2][1] = 2.0 * (yz + wx);
             m.m[2][2] = 1.0 - 2.0 * (x2 + y2);
             m.m[2][3] = 0.0;
             // 4열

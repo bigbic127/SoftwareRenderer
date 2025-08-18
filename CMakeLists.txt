@@ -72,7 +72,7 @@ if(APPLE)
         "-framework UniformTypeIdentifiers"
     )
 elseif(WIN32)
-    arget_link_libraries(IMGUI_LIB PUBLIC SDL2 SDL2main)
+    target_link_libraries(IMGUI_LIB PUBLIC SDL2 SDL2main)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
     target_link_libraries(${PROJECT_NAME} PRIVATE
         IMGUI_LIB
