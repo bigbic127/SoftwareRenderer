@@ -18,6 +18,7 @@ public:
     void SetWindowSize(int w, int h) {width = w; height = h;}
     void ResizeBuffers(int w, int h);
     virtual void ProcessInput(SDL_Event& event) = 0;//렌더러 인풋 가상함수
+    virtual void IRenderMode(int mode) = 0;
 protected:
     SDL_Window* window = nullptr;
     SDL_Renderer* renderer = nullptr;

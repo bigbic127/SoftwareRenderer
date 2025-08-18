@@ -323,33 +323,23 @@ Scene LoadGLTF(std::string filename)
     {
         Joint joint;
         joint.name = skin.name;
-
         // 본(joint) 인덱스
-        for (int index : skin.joints)
-        {
-            joint.children.push_back(index);
-        }
-
+        joint.children = skin.joints;
         // 루트 본
         joint.parent = skin.skeleton;
-
         // Inverse Bind Matrices
         if (skin.inverseBindMatrices > -1)
         {
             const auto& accessor = model.accessors[skin.inverseBindMatrices];
             const auto& bufferView = model.bufferViews[accessor.bufferView];
             const auto& buffer = model.buffers[bufferView.buffer];
-
-            const float* matrixData = reinterpret_cast<const float*>(
-                &buffer.data[bufferView.byteOffset + accessor.byteOffset]);
-
+            const float* matrixData = reinterpret_cast<const float*>(&buffer.data[bufferView.byteOffset + accessor.byteOffset]);
             for (size_t i = 0; i < accessor.count; ++i)
             {
                 Matrix4x4 m;
                 for (int r = 0; r < 4; ++r)
                     for (int c = 0; c < 4; ++c)
                         m.m[r][c] = matrixData[i * 16 + r * 4 + c];
-
                 joint.inverseBindMatrices.push_back(m);
             }
         }
@@ -359,8 +349,6 @@ Scene LoadGLTF(std::string filename)
     {
         Animation animation;
         animation.name = anim.name;
-        std::cout << "========================================" << std::endl;
-        std::cout << "Processing Animation: " << (animation.name.empty() ? "(unnamed)" : animation.name) << std::endl;
         // 1. 먼저 모든 샘플러 데이터를 파싱해서 저장합니다.
         //    여러 채널이 하나의 샘플러를 공유할 수 있기 때문입니다.
         std::map<int, AnimationSampler> parsedSamplers;

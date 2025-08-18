@@ -27,6 +27,7 @@ class Renderer : public Window
         void Update();
         void Render();
         void ProcessInput(SDL_Event& event) override;
+        void IRenderMode(int mode) override;
         void InputTransform(SDL_Event& event);
         void OpenObjFile();
         void DrawClear(uint32_t color = 0xFF000000);

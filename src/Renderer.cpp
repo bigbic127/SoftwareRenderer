@@ -502,6 +502,28 @@ void Renderer::OpenObjFile()
     camera.SetPerspective(70.f, float(width)/height, 0.1f, 100.f);
 }
 
+void Renderer::IRenderMode(int mode)
+{
+    switch (mode)
+    {
+    case 0:
+        SetRenderMode(RenderMode::Wireframe);
+        break;
+    case 1:
+        SetRenderMode(RenderMode::FloatData);
+        break;
+    case 2:
+        SetRenderMode(RenderMode::Solid);
+        break;
+    case 3:
+        SetRenderMode(RenderMode::Shader);
+        break;
+    default:
+        break;
+    }
+}
+
+
 void Renderer::InputTransform(SDL_Event& event)
 {
     switch (event.type)

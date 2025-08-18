@@ -118,27 +118,16 @@ void Window::DrawGUI()
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
         if (ImGui::Button("wireframe"))
-        {
-
-        }
+            IRenderMode(0);
         ImGui::SameLine();
         if (ImGui::Button("flat"))
-        {
-
-        }
+            IRenderMode(1);
         ImGui::SameLine();
         if (ImGui::Button("Solid"))
-        {
-
-        }
+            IRenderMode(2);
         ImGui::SameLine();
         if (ImGui::Button("Shader"))
-        {
-
-        }
-        float frame;
-        ImGui::SliderFloat("KeyFrame", &frame, 0.0f, 1.0f);
-
+            IRenderMode(3);
         if (ImGui::IsWindowHovered())
         {
             io.WantCaptureKeyboard = true;

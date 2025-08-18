@@ -14,7 +14,7 @@ struct AnimationSampler
 {
     std::string interpolation;
     std::vector<Keyframe<Vector3>> translationKeys;
-    std::vector<Keyframe<Vector4>> rotationKeys;
+    std::vector<Keyframe<Quaternion>> rotationKeys;
     std::vector<Keyframe<Vector3>> scaleKeys;
 };
 

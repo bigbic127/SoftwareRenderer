@@ -14,4 +14,5 @@ struct Node
     std::vector<int> children;
     Transform transform;
     Matrix4x4 matrix;
+    Matrix4x4 localMatrix;
 };
