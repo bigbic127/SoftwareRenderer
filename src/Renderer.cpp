@@ -96,7 +96,7 @@ void Renderer::Render()
                     if (w > 0.0f)
                         skinned =  skinned + ((scene.nodes[_j].transform.GetMatrix() * v) * w);
                 }
-                v = Vector4(skinned.x, skinned.y, skinned.z, 1.0f);
+                //v = Vector4(skinned.x, skinned.y, skinned.z, 1.0f);
             }
             Vector4 model = mesh.GetTransform().GetMatrix() * v; //월드행렬 변환
             Vector4 view =  camera.GetViewMatrix() * model; //뷰행렬 변환
