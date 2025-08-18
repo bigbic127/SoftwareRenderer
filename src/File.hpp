@@ -407,6 +407,100 @@ Scene LoadGLTF(std::string filename)
             animation.channels.push_back(animChannel);
         }
         scene.animations.push_back(animation);
-    }    
+    }
+    // Material. Texture, Image
+    for (size_t matIdx = 0; matIdx < model.materials.size(); ++matIdx) {
+        const tinygltf::Material &mat = model.materials[matIdx];
+        std::cout << "Material[" << matIdx << "]: " << mat.name << "\n";
+
+        // ---- PBR BaseColorTexture ----
+        const auto &pbr = mat.pbrMetallicRoughness;
+        if (pbr.baseColorTexture.index >= 0) {
+            int texIdx = pbr.baseColorTexture.index;
+            const tinygltf::Texture &tex = model.textures[texIdx];
+            std::cout << "  BaseColorTexture -> Texture[" << texIdx << "]\n";
+
+            // 연결된 이미지
+            if (tex.source >= 0) {
+                const tinygltf::Image &img = model.images[tex.source];
+                std::cout << "    Image[" << tex.source << "]: " << img.name
+                          << " (" << img.width << "x" << img.height << ")\n";
+                std::cout << "    MIME type: " << img.mimeType << "\n";
+
+                // 원본 바이너리
+                if (img.bufferView >= 0) {
+                    const auto &bv  = model.bufferViews[img.bufferView];
+                    const auto &buf = model.buffers[bv.buffer];
+                    size_t dataSize = bv.byteLength;
+                    std::cout << "    Binary size: " << dataSize << " bytes\n";
+                }
+            }
+        }
+
+        // ---- MetallicRoughnessTexture ----
+        if (pbr.metallicRoughnessTexture.index >= 0) {
+            int texIdx = pbr.metallicRoughnessTexture.index;
+            const tinygltf::Texture &tex = model.textures[texIdx];
+            std::cout << "  MetallicRoughnessTexture -> Texture[" << texIdx << "]\n";
+        }
+
+        // ---- Normal Texture ----
+        if (mat.normalTexture.index >= 0) {
+            int texIdx = mat.normalTexture.index;
+            std::cout << "  NormalTexture -> Texture[" << texIdx << "]\n";
+        }
+
+        // ---- Occlusion Texture ----
+        if (mat.occlusionTexture.index >= 0) {
+            int texIdx = mat.occlusionTexture.index;
+            std::cout << "  OcclusionTexture -> Texture[" << texIdx << "]\n";
+        }
+
+        // ---- Emissive Texture ----
+        if (mat.emissiveTexture.index >= 0) {
+            int texIdx = mat.emissiveTexture.index;
+            std::cout << "  EmissiveTexture -> Texture[" << texIdx << "]\n";
+        }
+
+        // ---- PBR Factors ----
+        std::cout << "  BaseColorFactor: ";
+        for (double v : pbr.baseColorFactor) std::cout << v << " ";
+        std::cout << "\n";
+
+        std::cout << "  MetallicFactor: " << pbr.metallicFactor
+                  << " RoughnessFactor: " << pbr.roughnessFactor << "\n";
+
+        std::cout << "  EmissiveFactor: ";
+        for (double v : mat.emissiveFactor) std::cout << v << " ";
+        std::cout << "\n\n";
+    }
+
+    std::cout << "=== Textures ===\n";
+    for (size_t texIdx = 0; texIdx < model.textures.size(); ++texIdx) {
+        const auto &tex = model.textures[texIdx];
+        std::cout << "Texture[" << texIdx << "]\n";
+        if (tex.sampler >= 0) {
+            const auto &s = model.samplers[tex.sampler];
+            std::cout << " - Sampler wrapS: " << s.wrapS
+                      << " wrapT: " << s.wrapT
+                      << " minFilter: " << s.minFilter
+                      << " magFilter: " << s.magFilter << "\n";
+        }
+        if (tex.source >= 0) {
+            const auto &img = model.images[tex.source];
+            std::cout << " - Source Image[" << tex.source << "]: " << img.name << "\n";
+        }
+    }
+
+    std::cout << "=== Images ===\n";
+    for (size_t imgIdx = 0; imgIdx < model.images.size(); ++imgIdx) {
+        const auto &img = model.images[imgIdx];
+        std::cout << "Image[" << imgIdx << "] name: " << img.name
+                  << " (" << img.width << "x" << img.height << ")\n";
+        std::cout << " - MIME: " << img.mimeType << "\n";
+        std::cout << " - Raw bytes: " << img.image.size() << "\n";
+    }
+
+
     return scene;
 }
