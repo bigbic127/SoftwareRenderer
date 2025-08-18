@@ -188,6 +188,16 @@ class Quaternion
             if (len == 0) return Quaternion(0,0,0,0);
             return (*this) / len;
         }
+        Quaternion Lerp(const Quaternion& q, float t)
+        {
+            return
+            {
+                x + (q.x - x) * t,
+                y + (q.y - y) * t,
+                z + (q.z - z) * t,
+                w + (q.w - w) * t
+            };
+        }
     public:
         float x, y, z, w;
 };

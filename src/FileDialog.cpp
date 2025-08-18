@@ -3,10 +3,6 @@
 #ifdef _WIN32
     #include <windows.h>
     #include <ShObjIdl.h>
-#elif defined(__APPLE__)
-#endif
-
-
 
 std::vector<std::filesystem::path> FileDialog::ShowFileDialog(bool isSave)
 {
@@ -115,3 +111,4 @@ std::vector<std::filesystem::path> FileDialog::ShowFileDialog(bool isSave)
     }
     return paths;
 }
+#endif

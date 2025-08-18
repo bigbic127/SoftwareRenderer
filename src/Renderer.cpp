@@ -60,7 +60,7 @@ void Renderer::Update()
         {
             Transform& transform = mesh.GetTransform();
             Vector3 rot = transform.GetRotation();
-            rot.y += 0.5f * frameSecond;
+            rot.y += 0.2f * frameSecond;
             transform.SetRotation(rot);
         }
     }
@@ -94,7 +94,7 @@ void Renderer::Render()
                     float w = weightValues[i];
                     int _j = scene.joints[0].children[j];
                     if (w > 0.0f)
-                        skinned =  skinned + ((scene.nodes[_j].transform.GetQuatMatrix() * v) * w);
+                        skinned =  skinned + ((scene.nodes[_j].transform.GetMatrix() * v) * w);
                 }
                 v = Vector4(skinned.x, skinned.y, skinned.z, 1.0f);
             }

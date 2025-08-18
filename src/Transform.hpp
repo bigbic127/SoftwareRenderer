@@ -2,8 +2,10 @@
 
 #include "Matrix.hpp"
 #include "Vector.hpp"
+#include <cmath>
 
-#define DEG2RAD(x) ((x) * 3.14159265359f / 180.0f)
+
+#define DEG2RAD(x) ((x) * M_PI / 180.0f)
 
 class Transform
 {
@@ -13,7 +15,7 @@ class Transform
         Vector3 GetScale()const{return scale;}
         Quaternion GetQuterian() {return quterian;}
         void SetPosition(Vector3 pos) {this->position = pos;}
-        void SetRotation(Vector3 rot) {this->rotation = rot;}
+        void SetRotation(Vector3 rot) {this->rotation = rot; quterian = toQuaternion();}
         void SetScale(Vector3 s) {this->scale = s;}
         void SetQuterian(Quaternion q) {this->quterian = q;}
 
@@ -24,9 +26,7 @@ class Transform
             float sinTheta = sinf(angleRad);
             return v * cosTheta + k.Cross(v) * sinTheta + k * k.Dot(v) * (1 - cosTheta);
         }
-        Matrix4x4 GetMatrix(){return Translation() * Rotation() * Scale();}
-        Matrix4x4 GetQuatMatrix(){return Translation() * QuatRotation() * Scale();}
-
+        Matrix4x4 GetMatrix(){return Translation() * QuatRotation() * Scale();}
     private:
         Matrix4x4 Translation()
         {
@@ -94,8 +94,25 @@ class Transform
             m.m[3][3] = 1.0;
             return m;
         }
-
-
+        Quaternion toQuaternion() {
+            // 오일러 각도를 라디안으로 변환
+            double roll = DEG2RAD(rotation.x);
+            double pitch = DEG2RAD(rotation.y);
+            double yaw = DEG2RAD(rotation.z);
+            // 각도를 절반으로 나눈 값의 사인과 코사인 계산
+            double cy = cos(yaw * 0.5);
+            double sy = sin(yaw * 0.5);
+            double cp = cos(pitch * 0.5);
+            double sp = sin(pitch * 0.5);
+            double cr = cos(roll * 0.5);
+            double sr = sin(roll * 0.5);
+            Quaternion q;
+            q.w = cr * cp * cy + sr * sp * sy;
+            q.x = sr * cp * cy - cr * sp * sy;
+            q.y = cr * sp * cy + sr * cp * sy;
+            q.z = cr * cp * sy - sr * sp * cy;
+            return q;
+        }
         Matrix4x4 Scale()
         {
             Matrix4x4 mat;

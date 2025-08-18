@@ -7,6 +7,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.mm"
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
@@ -59,13 +60,19 @@ target_include_directories(IMGUI_LIB PUBLIC
     ${imgui_SOURCE_DIR}
     ${imgui_SOURCE_DIR}/backends
 )
-target_link_libraries(IMGUI_LIB PUBLIC SDL2 SDL2main)
 if(APPLE)
+    target_link_libraries(IMGUI_LIB PUBLIC SDL2)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_SOURCE_DIR}/bin)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_SOURCE_DIR}/bin)
-    target_link_libraries(${PROJECT_NAME} PRIVATE IMGUI_LIB)
-
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+        IMGUI_LIB
+        GLTF_LIB
+        "-framework Cocoa"
+        "-framework AppKit"
+        "-framework UniformTypeIdentifiers"
+    )
 elseif(WIN32)
+    arget_link_libraries(IMGUI_LIB PUBLIC SDL2 SDL2main)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
     target_link_libraries(${PROJECT_NAME} PRIVATE
         IMGUI_LIB
