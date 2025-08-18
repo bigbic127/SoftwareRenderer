@@ -12,8 +12,8 @@
 #include "Mesh.hpp"
 #include "Vector.hpp"
 #include "lodepng.h"
-#include "Node.hpp"
-#include "Scene.hpp"
+#include "GltfData.hpp"
+#include "Level.hpp"
 
 using namespace std;
 
@@ -137,6 +137,17 @@ static void LoadObjFile(const string& path, Mesh& mesh)//, vector<Vector2D>& uvs
             }
         }
     }
+    if(uvs.size() <= 0 || normals.size() <= 0)
+    {
+        //Vertex 구조
+        for (size_t i = 0; i < vertices.size(); i++)
+        {
+            Vertex v;
+            v.pos = Vector4(vertices[i]);
+            vertex.push_back(v);
+        }
+        return;
+    }
     //indices에 맞게 UV,Normal 수정
     vector<Vector3> newNormals;
     vector<Vector2> newuvs;
@@ -174,16 +185,16 @@ static void LoadObjFile(const string& path, Mesh& mesh)//, vector<Vector2D>& uvs
 }
 
 
-Scene LoadGLTF(std::string filename)
+Level LoadGLTF(std::string filename)
 {
-    Scene scene;
+    Level level;
     tinygltf::Model model;
     tinygltf::TinyGLTF loader;
     std::string err;
     std::string warn;
     bool res = loader.LoadBinaryFromFile(&model, &err, &warn, filename.c_str());//LoadASCIIFromFile
     if (!res)
-        return scene;
+        return level;
     for (const auto& node : model.nodes) {
         Node _node;
         _node.name = node.name;
@@ -201,7 +212,7 @@ Scene LoadGLTF(std::string filename)
                     m.m[row][col] = node.matrix[col * 4 + row]; 
             _node.matrix = m;
         }
-        scene.nodes.push_back(_node);
+        level.nodes.push_back(_node);
     }
     for (const auto& mesh : model.meshes)
     {
@@ -289,14 +300,14 @@ Scene LoadGLTF(std::string filename)
             // Vertex 구조
             for (size_t i = 0; i < vertices.size(); i++)
             {
-                Vertex _v;                
+                Vertex _v;
                 _v.pos = Vector4(vertices[i]);
-                _v.nor = Vector4(normals[i], 0.0f);
-                _v.uv = uvs[i];
+                if(normals.size() > 0) _v.nor = Vector4(normals[i], 0.0f);
+                if(uvs.size() > 0) _v.uv = uvs[i];
                 vertex.push_back(_v);
             }
-            scene.meshes.push_back(_mesh);
+            level.meshes.push_back(_mesh);
         }
     }
-    return scene;
+    return level;
 }

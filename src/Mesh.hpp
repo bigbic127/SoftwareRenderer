@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <string>
-#include "Node.hpp"
+#include "GltfData.hpp"
 #include "Vector.hpp"
 #include "Transform.hpp"
 
@@ -15,8 +15,8 @@ class Vertex
         Vertex(Vector4 p, Vector2 u) : pos(p), uv(u){}
     public:
         Vector4 pos;
-        Vector4 nor;
-        Vector2 uv;
+        Vector4 nor = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+        Vector2 uv = Vector2(0.0f, 1.0f);
         Vector3 proj_m;
         Vector4 proj_clip;
         Vector3 proj_p;
@@ -51,7 +51,6 @@ class Mesh
         void Cube();
         void Sphere(int stacks = 32, int slices = 32, float radius = 1.0f);
     private:
-        Node node;
         vector<Triangle> triangles;
         vector<Vertex> vertex;
         vector<Vector3i> indices;

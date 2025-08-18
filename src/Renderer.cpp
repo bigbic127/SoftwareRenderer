@@ -443,8 +443,8 @@ void Renderer::OpenObjFile()
         std::filesystem::path pngPath = path;
         if (objPath.extension() == ".glb")
         {
-            scene = LoadGLTF(path.string());
-            for (Mesh mesh : scene.meshes)
+            level = LoadGLTF(path.string());
+            for (Mesh mesh : level.meshes)
                 meshes.push_back(mesh);
         }
         else if (objPath.extension() == ".obj")

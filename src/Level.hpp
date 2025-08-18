@@ -1,9 +1,9 @@
 #pragma once
-#include "Node.hpp"
+#include "GltfData.hpp"
 #include "Mesh.hpp"
 #include <vector>
 
-struct Scene
+struct Level
 {
     vector<Node> nodes;
     vector<Mesh> meshes;

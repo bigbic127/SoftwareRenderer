@@ -3,7 +3,7 @@
 #include "Vector.hpp"
 #include "Camera.hpp"
 #include "Mesh.hpp"
-#include "Scene.hpp"
+#include "Level.hpp"
 #include <vector>
 
 using namespace std;
@@ -48,7 +48,7 @@ class Renderer : public Window
         float frameSecond = 1000/FPS;
         float previousFrameSecond = 0.0f;
         bool bIsLooping = false;
-        Scene scene;
+        Level level;
         vector<Mesh> meshes;
         Camera camera;
         RenderMode renderMode = RenderMode::Wireframe;

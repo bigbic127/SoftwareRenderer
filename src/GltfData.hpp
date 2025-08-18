@@ -1,10 +1,15 @@
 #pragma once
-#include <vector>
 #include <string>
-
+#include <vector>
 #include "Vector.hpp"
 #include "Matrix.hpp"
 #include "Transform.hpp"
+
+struct Scene    
+{
+    std::string name;
+    std::vector<int> nodes;
+};
 
 struct Node
 {
@@ -15,4 +20,18 @@ struct Node
     Transform transform;
     Matrix4x4 matrix;
     Matrix4x4 localMatrix;
+};
+
+struct Material
+{
+};
+
+struct Image
+{
+
+};
+
+struct Texture
+{
+
 };
