@@ -5,8 +5,6 @@
 #include "Node.hpp"
 #include "Vector.hpp"
 #include "Transform.hpp"
-#include "Joint.hpp"
-#include "Animation.hpp"
 
 using namespace std;
 
@@ -19,8 +17,6 @@ class Vertex
         Vector4 pos;
         Vector4 nor;
         Vector2 uv;
-        Vector4i jointIndices;
-        Vector4 weights;
         Vector3 proj_m;
         Vector4 proj_clip;
         Vector3 proj_p;
@@ -63,6 +59,4 @@ class Mesh
         Transform transform;
         vector<uint32_t> textures;
         int texWidth, texHeight;
-        vector<Joint> joints;
-        vector<Animation> animation;
 };

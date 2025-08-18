@@ -12,7 +12,6 @@
 #include "Mesh.hpp"
 #include "Vector.hpp"
 #include "lodepng.h"
-#include "Joint.hpp"
 #include "Node.hpp"
 #include "Scene.hpp"
 
@@ -287,24 +286,6 @@ Scene LoadGLTF(std::string filename)
                     uvs.push_back({uv_data[i * 2 + 0], uv_data[i * 2 + 1]});
                 }
             }
-            if (primitive.attributes.count("JOINTS_0"))
-            {
-                const auto& accessor = model.accessors[primitive.attributes.at("JOINTS_0")];
-                const auto& bufferView = model.bufferViews[accessor.bufferView];
-                const auto& buffer = model.buffers[bufferView.buffer];
-                const uint16_t* data = reinterpret_cast<const uint16_t*>(&buffer.data[bufferView.byteOffset + accessor.byteOffset]);
-                for (size_t v = 0; v < accessor.count; ++v)
-                    joints.push_back({data[v * 4 + 0], data[v * 4 + 1], data[v * 4 + 2], data[v * 4 + 3]});
-            }
-            if (primitive.attributes.count("WEIGHTS_0"))
-            {
-                const auto& accessor = model.accessors[primitive.attributes.at("WEIGHTS_0")];
-                const auto& bufferView = model.bufferViews[accessor.bufferView];
-                const auto& buffer = model.buffers[bufferView.buffer];
-                const float* data = reinterpret_cast<const float*>(&buffer.data[bufferView.byteOffset + accessor.byteOffset]);
-                for (size_t v = 0; v < accessor.count; ++v)
-                    weights.push_back({data[v * 4 + 0], data[v * 4 + 1], data[v * 4 + 2], data[v * 4 + 3]});
-            }
             // Vertex 구조
             for (size_t i = 0; i < vertices.size(); i++)
             {
@@ -312,195 +293,10 @@ Scene LoadGLTF(std::string filename)
                 _v.pos = Vector4(vertices[i]);
                 _v.nor = Vector4(normals[i], 0.0f);
                 _v.uv = uvs[i];
-                _v.jointIndices = joints[i];
-                _v.weights = weights[i];
                 vertex.push_back(_v);
             }
             scene.meshes.push_back(_mesh);
         }
     }
-    for (const auto& skin : model.skins)
-    {
-        Joint joint;
-        joint.name = skin.name;
-        // 본(joint) 인덱스
-        joint.children = skin.joints;
-        // 루트 본
-        joint.parent = skin.skeleton;
-        // Inverse Bind Matrices
-        if (skin.inverseBindMatrices > -1)
-        {
-            const auto& accessor = model.accessors[skin.inverseBindMatrices];
-            const auto& bufferView = model.bufferViews[accessor.bufferView];
-            const auto& buffer = model.buffers[bufferView.buffer];
-            const float* matrixData = reinterpret_cast<const float*>(&buffer.data[bufferView.byteOffset + accessor.byteOffset]);
-            for (size_t i = 0; i < accessor.count; ++i)
-            {
-                Matrix4x4 m;
-                for (int r = 0; r < 4; ++r)
-                    for (int c = 0; c < 4; ++c)
-                        m.m[r][c] = matrixData[i * 16 + r * 4 + c];
-                joint.inverseBindMatrices.push_back(m);
-            }
-        }
-        scene.joints.push_back(joint);
-    }
-    for (const auto& anim : model.animations)
-    {
-        Animation animation;
-        animation.name = anim.name;
-        // 1. 먼저 모든 샘플러 데이터를 파싱해서 저장합니다.
-        //    여러 채널이 하나의 샘플러를 공유할 수 있기 때문입니다.
-        std::map<int, AnimationSampler> parsedSamplers;
-        for (size_t i = 0; i < anim.samplers.size(); ++i) {
-            const auto& sampler = anim.samplers[i];
-            AnimationSampler animSampler;
-            animSampler.interpolation = sampler.interpolation;
-
-            // Input Accessor (시간 축)
-            const auto& inputAccessor = model.accessors[sampler.input];
-            const auto& inputBufferView = model.bufferViews[inputAccessor.bufferView];
-            const auto& inputBuffer = model.buffers[inputBufferView.buffer];
-            const float* timestamps = reinterpret_cast<const float*>(&inputBuffer.data[inputBufferView.byteOffset + inputAccessor.byteOffset]);
-
-            // Output Accessor (값: 위치, 회전, 크기)
-            const auto& outputAccessor = model.accessors[sampler.output];
-            const auto& outputBufferView = model.bufferViews[outputAccessor.bufferView];
-            const auto& outputBuffer = model.buffers[outputBufferView.buffer];
-            const void* values_ptr = &outputBuffer.data[outputBufferView.byteOffset + outputAccessor.byteOffset];
-
-            if (outputAccessor.type == TINYGLTF_TYPE_VEC3) { // Translation 또는 Scale
-                const float* values = static_cast<const float*>(values_ptr);
-                for (size_t k = 0; k < inputAccessor.count; ++k) {
-                    animSampler.translationKeys.push_back({
-                        timestamps[k],
-                        {values[k * 3 + 0], values[k * 3 + 1], values[k * 3 + 2]}
-                    });
-                }
-            } else if (outputAccessor.type == TINYGLTF_TYPE_VEC4) { // Rotation (Quaternion)
-                const float* values = static_cast<const float*>(values_ptr);
-                for (size_t k = 0; k < inputAccessor.count; ++k) {
-                    animSampler.rotationKeys.push_back({
-                        timestamps[k],
-                        {values[k * 4 + 0], values[k * 4 + 1], values[k * 4 + 2], values[k * 4 + 3]}
-                    });
-                }
-            }
-            parsedSamplers[i] = animSampler;
-        }
-        // 2. 채널을 순회하며 위에서 파싱한 샘플러와 연결합니다.
-        for (const auto& channel : anim.channels) {
-            AnimationChannel animChannel;
-            animChannel.targetNode = channel.target_node;
-            animChannel.targetPath = channel.target_path;
-            
-            // targetPath에 따라 샘플러의 키프레임 종류를 결정합니다.
-            AnimationSampler sourceSampler = parsedSamplers[channel.sampler];
-            if (channel.target_path == "translation") {
-                 animChannel.sampler.translationKeys = sourceSampler.translationKeys;
-            } else if (channel.target_path == "rotation") {
-                 animChannel.sampler.rotationKeys = sourceSampler.rotationKeys;
-            } else if (channel.target_path == "scale") {
-                // scale도 VEC3를 사용하므로 translationKeys에서 가져옵니다.
-                 animChannel.sampler.scaleKeys = sourceSampler.translationKeys;
-            }
-            animation.channels.push_back(animChannel);
-        }
-        scene.animations.push_back(animation);
-    }
-    // Material. Texture, Image
-    for (size_t matIdx = 0; matIdx < model.materials.size(); ++matIdx) {
-        const tinygltf::Material &mat = model.materials[matIdx];
-        std::cout << "Material[" << matIdx << "]: " << mat.name << "\n";
-
-        // ---- PBR BaseColorTexture ----
-        const auto &pbr = mat.pbrMetallicRoughness;
-        if (pbr.baseColorTexture.index >= 0) {
-            int texIdx = pbr.baseColorTexture.index;
-            const tinygltf::Texture &tex = model.textures[texIdx];
-            std::cout << "  BaseColorTexture -> Texture[" << texIdx << "]\n";
-
-            // 연결된 이미지
-            if (tex.source >= 0) {
-                const tinygltf::Image &img = model.images[tex.source];
-                std::cout << "    Image[" << tex.source << "]: " << img.name
-                          << " (" << img.width << "x" << img.height << ")\n";
-                std::cout << "    MIME type: " << img.mimeType << "\n";
-
-                // 원본 바이너리
-                if (img.bufferView >= 0) {
-                    const auto &bv  = model.bufferViews[img.bufferView];
-                    const auto &buf = model.buffers[bv.buffer];
-                    size_t dataSize = bv.byteLength;
-                    std::cout << "    Binary size: " << dataSize << " bytes\n";
-                }
-            }
-        }
-
-        // ---- MetallicRoughnessTexture ----
-        if (pbr.metallicRoughnessTexture.index >= 0) {
-            int texIdx = pbr.metallicRoughnessTexture.index;
-            const tinygltf::Texture &tex = model.textures[texIdx];
-            std::cout << "  MetallicRoughnessTexture -> Texture[" << texIdx << "]\n";
-        }
-
-        // ---- Normal Texture ----
-        if (mat.normalTexture.index >= 0) {
-            int texIdx = mat.normalTexture.index;
-            std::cout << "  NormalTexture -> Texture[" << texIdx << "]\n";
-        }
-
-        // ---- Occlusion Texture ----
-        if (mat.occlusionTexture.index >= 0) {
-            int texIdx = mat.occlusionTexture.index;
-            std::cout << "  OcclusionTexture -> Texture[" << texIdx << "]\n";
-        }
-
-        // ---- Emissive Texture ----
-        if (mat.emissiveTexture.index >= 0) {
-            int texIdx = mat.emissiveTexture.index;
-            std::cout << "  EmissiveTexture -> Texture[" << texIdx << "]\n";
-        }
-
-        // ---- PBR Factors ----
-        std::cout << "  BaseColorFactor: ";
-        for (double v : pbr.baseColorFactor) std::cout << v << " ";
-        std::cout << "\n";
-
-        std::cout << "  MetallicFactor: " << pbr.metallicFactor
-                  << " RoughnessFactor: " << pbr.roughnessFactor << "\n";
-
-        std::cout << "  EmissiveFactor: ";
-        for (double v : mat.emissiveFactor) std::cout << v << " ";
-        std::cout << "\n\n";
-    }
-
-    std::cout << "=== Textures ===\n";
-    for (size_t texIdx = 0; texIdx < model.textures.size(); ++texIdx) {
-        const auto &tex = model.textures[texIdx];
-        std::cout << "Texture[" << texIdx << "]\n";
-        if (tex.sampler >= 0) {
-            const auto &s = model.samplers[tex.sampler];
-            std::cout << " - Sampler wrapS: " << s.wrapS
-                      << " wrapT: " << s.wrapT
-                      << " minFilter: " << s.minFilter
-                      << " magFilter: " << s.magFilter << "\n";
-        }
-        if (tex.source >= 0) {
-            const auto &img = model.images[tex.source];
-            std::cout << " - Source Image[" << tex.source << "]: " << img.name << "\n";
-        }
-    }
-
-    std::cout << "=== Images ===\n";
-    for (size_t imgIdx = 0; imgIdx < model.images.size(); ++imgIdx) {
-        const auto &img = model.images[imgIdx];
-        std::cout << "Image[" << imgIdx << "] name: " << img.name
-                  << " (" << img.width << "x" << img.height << ")\n";
-        std::cout << " - MIME: " << img.mimeType << "\n";
-        std::cout << " - Raw bytes: " << img.image.size() << "\n";
-    }
-
-
     return scene;
 }
