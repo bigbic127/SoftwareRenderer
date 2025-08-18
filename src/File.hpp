@@ -187,7 +187,9 @@ Scene LoadGLTF(std::string filename)
         return scene;
     for (const auto& node : model.nodes) {
         Node _node;
-        if (!node.name.empty()) _node.name = node.name;
+        _node.name = node.name;
+        _node.mesh = node.mesh;
+        _node.skin = node.skin;
         if (!node.children.empty()) _node.children = node.children;
         if (!node.translation.empty()) _node.transform.SetPosition(Vector3(node.translation[0], node.translation[1], node.translation[2]));
         if (!node.rotation.empty()) _node.transform.SetQuterian(Quaternion(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]));
@@ -290,25 +292,9 @@ Scene LoadGLTF(std::string filename)
                 const auto& accessor = model.accessors[primitive.attributes.at("JOINTS_0")];
                 const auto& bufferView = model.bufferViews[accessor.bufferView];
                 const auto& buffer = model.buffers[bufferView.buffer];
-                const void* data_ptr = &buffer.data[bufferView.byteOffset + accessor.byteOffset];
-                switch (accessor.componentType) {
-                    case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT: {
-                        const uint16_t* data = static_cast<const uint16_t*>(data_ptr);
-                        for (size_t v = 0; v < accessor.count; ++v) {
-                            joints.push_back({data[v * 4 + 0], data[v * 4 + 1], data[v * 4 + 2], data[v * 4 + 3]});
-                        }
-                        break;
-                    }
-                    case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE: {
-                        const uint8_t* data = static_cast<const uint8_t*>(data_ptr);
-                        for (size_t v = 0; v < accessor.count; ++v) {
-                            joints.push_back({(unsigned short)data[v * 4 + 0], (unsigned short)data[v * 4 + 1], (unsigned short)data[v * 4 + 2], (unsigned short)data[v * 4 + 3]});
-                        }
-                        break;
-                    }
-                    default:
-                        break;
-                }
+                const uint16_t* data = reinterpret_cast<const uint16_t*>(&buffer.data[bufferView.byteOffset + accessor.byteOffset]);
+                for (size_t v = 0; v < accessor.count; ++v)
+                    joints.push_back({data[v * 4 + 0], data[v * 4 + 1], data[v * 4 + 2], data[v * 4 + 3]});
             }
             if (primitive.attributes.count("WEIGHTS_0"))
             {
@@ -316,9 +302,8 @@ Scene LoadGLTF(std::string filename)
                 const auto& bufferView = model.bufferViews[accessor.bufferView];
                 const auto& buffer = model.buffers[bufferView.buffer];
                 const float* data = reinterpret_cast<const float*>(&buffer.data[bufferView.byteOffset + accessor.byteOffset]);
-                for (size_t v = 0; v < accessor.count; ++v) {
+                for (size_t v = 0; v < accessor.count; ++v)
                     weights.push_back({data[v * 4 + 0], data[v * 4 + 1], data[v * 4 + 2], data[v * 4 + 3]});
-                }
             }
             // Vertex 구조
             for (size_t i = 0; i < vertices.size(); i++)
