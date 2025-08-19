@@ -55,6 +55,15 @@ class Matrix4x4
         {
             return Vector4(m[row][0], m[row][1], m[row][2], m[row][3]);
         }
+        static Matrix4x4 gltfToAxis()
+        {
+            Matrix4x4 m;
+            m.m[0][0] = 1.0f; m.m[0][1] = 0.0f; m.m[0][2] = 0.0f; m.m[0][3] = 0.0f;
+            m.m[1][0] = 0.0f; m.m[1][1] = 0.0f; m.m[1][2] = -1.0f; m.m[1][3] = 0.0f;
+            m.m[2][0] = 0.0f; m.m[2][1] = 1.0f; m.m[2][2] = 0.0f; m.m[2][3] = 0.0f;
+            m.m[3][0] = 0.0f; m.m[3][1] = 0.0f; m.m[3][2] =  0.0f; m.m[3][3] = 1.0f;
+            return m;
+        }
     public:
         float m[4][4];
 };

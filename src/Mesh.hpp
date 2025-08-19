@@ -15,8 +15,8 @@ class Vertex
         Vertex(Vector4 p, Vector2 u) : pos(p), uv(u){}
     public:
         Vector4 pos;
-        Vector4 nor = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
-        Vector2 uv = Vector2(0.0f, 1.0f);
+        Vector4 nor;
+        Vector2 uv;
         Vector3 proj_m;
         Vector4 proj_clip;
         Vector3 proj_p;
@@ -50,12 +50,17 @@ class Mesh
         uint32_t& GetColor() {return color;}
         void Cube();
         void Sphere(int stacks = 32, int slices = 32, float radius = 1.0f);
+    public:
+        int MaterialID;
+        string name;
+        vector<Node> parentNodes;
     private:
         vector<Triangle> triangles;
         vector<Vertex> vertex;
         vector<Vector3i> indices;
-        uint32_t color = 0xFF555555;
         Transform transform;
+        uint32_t color = 0xFF555555;
         vector<uint32_t> textures;
         int texWidth, texHeight;
+        
 };

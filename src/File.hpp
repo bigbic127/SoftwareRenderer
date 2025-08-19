@@ -195,7 +195,14 @@ Level LoadGLTF(std::string filename)
     bool res = loader.LoadBinaryFromFile(&model, &err, &warn, filename.c_str());//LoadASCIIFromFile
     if (!res)
         return level;
-    for (const auto& node : model.nodes) {
+    for (const auto& scene : model.scenes)
+    {
+        Scene _scene;
+        _scene.name = scene.name;
+        _scene.nodes = scene.nodes;
+    }
+    for (const auto& node : model.nodes)
+    {
         Node _node;
         _node.name = node.name;
         _node.mesh = node.mesh;
@@ -210,27 +217,26 @@ Level LoadGLTF(std::string filename)
             for (int row = 0; row < 4; row++)
                 for (int col = 0; col < 4; col++)
                     m.m[row][col] = node.matrix[col * 4 + row]; 
-            _node.matrix = m;
+            _node.transform.localMatirix = m;
         }
         level.nodes.push_back(_node);
     }
     for (const auto& mesh : model.meshes)
     {
-        std::cout << "Processing Mesh: " << (mesh.name.empty() ? "(unnamed)" : mesh.name) << std::endl;
         for (const auto& primitive : mesh.primitives)
         {
             Mesh _mesh;
             vector<Vertex>& vertex = _mesh.GetVertex();
             vector<Vector3i>& indices = _mesh.GetIndices();
-            vector<Vector3> vertices ;
+            vector<Vector3> vertices;
             vector<Vector3> normals;
             vector<Vector2> uvs;
             vector<Vector4> weights;
             vector<Vector4i> joints;
             vertex.clear();
             indices.clear();
-
-            std::string name = mesh.name;
+            _mesh.name = mesh.name;
+            _mesh.MaterialID = primitive.material;
             if (primitive.attributes.count("POSITION"))
             {
                 const auto& accessor = model.accessors[primitive.attributes.at("POSITION")];
@@ -308,6 +314,15 @@ Level LoadGLTF(std::string filename)
             }
             level.meshes.push_back(_mesh);
         }
+    }
+    for (const auto& mat : model.materials)
+    {
+        Material _mat;
+        if (!mat.pbrMetallicRoughness.baseColorFactor.empty()) _mat.baseColorFactor = RGBAtoOx(mat.pbrMetallicRoughness.baseColorFactor);
+        //if (!mat.pbrMetallicRoughness.baseColorTexture.empty()) _mat.baseColorTexture = mat.pbrMetallicRoughness.baseColorTexture;
+        _mat.metallicFactor = mat.pbrMetallicRoughness.metallicFactor;
+        _mat.roughnessFactor = mat.pbrMetallicRoughness.roughnessFactor;
+        level.materials.push_back(_mat);
     }
     return level;
 }

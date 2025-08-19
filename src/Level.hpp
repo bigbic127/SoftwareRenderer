@@ -7,4 +7,5 @@ struct Level
 {
     vector<Node> nodes;
     vector<Mesh> meshes;
+    vector<Material> materials;
 };

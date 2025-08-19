@@ -42,7 +42,7 @@ void Renderer::Ready()
     meshes.clear();
     meshes.push_back(mesh);
     //카메라 파마리터 변경
-    camera.SetLookAt(Vector3(0.f, 1.5f, 4.f), Vector3(0.f,0.f,0.f), Vector3(0.f,1.f,0.f));
+    camera.SetLookAt(Vector3(0.f, 2.0f, 10.f), Vector3(0.f,0.f,0.f), Vector3(0.f,1.f,0.f));
     camera.SetPerspective(70.f, float(width)/height, 0.1f, 100.f);
 }
 
@@ -64,6 +64,7 @@ void Renderer::Update()
             transform.SetRotation(rot);
         }
     }
+    camera.SetPerspective(70.f, float(width)/height, 0.1f, 100.f);//화면 비율 유지
 }
 
 void Renderer::Render()
@@ -444,8 +445,42 @@ void Renderer::OpenObjFile()
         if (objPath.extension() == ".glb")
         {
             level = LoadGLTF(path.string());
-            for (Mesh mesh : level.meshes)
+            //parentNode추가 람다식
+            std::function<void(int, int, const Node&)> traverse;
+            traverse = [&](int cIndex, int pIndex, Node parentNode){
+                Node &node = level.nodes[cIndex];
+                node.parent = pIndex;
+                int meshIdx = node.mesh;
+                if (meshIdx > -1)
+                {
+                    //childen -> parent Matrix 계산
+                    int p = cIndex;
+                    Transform& transform = level.meshes[meshIdx].GetTransform();
+                    Matrix4x4 _m;
+                    while(p>=0)
+                    {
+                        Node& n = level.nodes[p];
+                        _m = n.transform.GetMatrix() * _m;
+                        p = n.parent;
+                    }
+                    transform.localMatirix = _m;
+                }
+                for (int idx : node.children)
+                    traverse(idx, cIndex, node);
+                };
+            for (size_t i = 0; i < level.nodes.size();i++)
+            {
+                Node& node = level.nodes[i];
+                for (int& idx : node.children)
+                    traverse(idx, i, node);
+            }
+            for (Material& mat : level.materials)
+            {
+            }
+            for (Mesh& mesh : level.meshes)
+            {
                 meshes.push_back(mesh);
+            }
         }
         else if (objPath.extension() == ".obj")
         {
@@ -479,11 +514,11 @@ void Renderer::OpenObjFile()
     float scale_factor2 = -value * scale_factor;
     for (Mesh& mesh : meshes)
     {
-        mesh.GetTransform().SetPosition(center * scale_factor);
-        mesh.GetTransform().SetScale(Vector3(scale_factor2,scale_factor2,scale_factor2));
+        //mesh.GetTransform().SetPosition(center * scale_factor);
+        //mesh.GetTransform().SetScale(Vector3(scale_factor2,scale_factor2,scale_factor2));
     }
-    camera.SetLookAt(Vector3(0.f,0.5f, 4.f), Vector3(0.f,0.f,0.f), Vector3(0.f,1.f,0.f));
-    camera.SetPerspective(70.f, float(width)/height, 0.1f, 100.f);
+    //camera.SetLookAt(Vector3(0.f,0.5f, 4.f), Vector3(0.f,0.f,0.f), Vector3(0.f,1.f,0.f));
+    //camera.SetPerspective(70.f, float(width)/height, 0.1f, 100.f);
 }
 
 void Renderer::IRenderMode(int mode)
