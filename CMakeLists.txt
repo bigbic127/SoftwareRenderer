@@ -13,6 +13,17 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 include(FetchContent)
+#stb image
+FetchContent_Declare(
+    stb
+    GIT_REPOSITORY https://github.com/nothings/stb.git
+    GIT_TAG master
+)
+FetchContent_MakeAvailable(stb)
+add_library(STB_LIB INTERFACE)
+target_include_directories(STB_LIB INTERFACE
+    ${stb_SOURCE_DIR}
+)
 #tiny gltf
 FetchContent_Declare(
     gltf
@@ -67,6 +78,7 @@ if(APPLE)
     target_link_libraries(${PROJECT_NAME} PRIVATE
         IMGUI_LIB
         GLTF_LIB
+        STB_LIB
         "-framework Cocoa"
         "-framework AppKit"
         "-framework UniformTypeIdentifiers"
@@ -77,6 +89,7 @@ elseif(WIN32)
     target_link_libraries(${PROJECT_NAME} PRIVATE
         IMGUI_LIB
         GLTF_LIB
+        STB_LIB
     )
 endif()
 set_target_properties(${PROJECT_NAME} PROPERTIES

@@ -53,7 +53,6 @@ class Mesh
     public:
         int MaterialID;
         string name;
-        vector<Node> parentNodes;
     private:
         vector<Triangle> triangles;
         vector<Vertex> vertex;

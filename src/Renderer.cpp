@@ -479,6 +479,18 @@ void Renderer::OpenObjFile()
             }
             for (Mesh& mesh : level.meshes)
             {
+                int matID = mesh.MaterialID;
+                if (matID > -1)
+                {
+                    int texID = level.materials[matID].baseColorTexture.index;
+                    if (texID > -1)
+                    {
+                        int imgID = level.textures[texID].source;
+                        mesh.GetTexture() = level.images[imgID].image;
+                        mesh.GetUVsWidth() = level.images[imgID].width;
+                        mesh.GetUVsHeight() = level.images[imgID].height;
+                    }
+                }
                 meshes.push_back(mesh);
             }
         }
@@ -498,12 +510,13 @@ void Renderer::OpenObjFile()
     {
         for (const Vertex& v : mesh.GetVertex())
         {
-            minBound.x = std::min(minBound.x, v.pos.x);
-            minBound.y = std::min(minBound.y, v.pos.y);
-            minBound.z = std::min(minBound.z, v.pos.z);
-            maxBound.x = std::max(maxBound.x, v.pos.x);
-            maxBound.y = std::max(maxBound.y, v.pos.y);
-            maxBound.z = std::max(maxBound.z, v.pos.z);
+            Vector4 p = mesh.GetTransform().GetMatrix() * v.pos;
+            minBound.x = std::min(minBound.x, p.x);
+            minBound.y = std::min(minBound.y, p.y);
+            minBound.z = std::min(minBound.z, p.z);
+            maxBound.x = std::max(maxBound.x, p.x);
+            maxBound.y = std::max(maxBound.y, p.y);
+            maxBound.z = std::max(maxBound.z, p.z);
         }        
     }
     Vector3 size = minBound - maxBound;
@@ -517,7 +530,7 @@ void Renderer::OpenObjFile()
         //mesh.GetTransform().SetPosition(center * scale_factor);
         //mesh.GetTransform().SetScale(Vector3(scale_factor2,scale_factor2,scale_factor2));
     }
-    //camera.SetLookAt(Vector3(0.f,0.5f, 4.f), Vector3(0.f,0.f,0.f), Vector3(0.f,1.f,0.f));
+    camera.SetLookAt(Vector3(0.f,0.5f, 10.f), Vector3(0.f,0.f,0.f), Vector3(0.f,1.f,0.f));
     //camera.SetPerspective(70.f, float(width)/height, 0.1f, 100.f);
 }
 
@@ -541,7 +554,6 @@ void Renderer::IRenderMode(int mode)
         break;
     }
 }
-
 
 void Renderer::InputTransform(SDL_Event& event)
 {

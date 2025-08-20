@@ -8,4 +8,7 @@ struct Level
     vector<Node> nodes;
     vector<Mesh> meshes;
     vector<Material> materials;
+    vector<Texture> textures;
+    vector<Image> images;
+    vector<uint32_t> path;
 };

@@ -6,7 +6,7 @@
 #include <sstream>
 #include <iostream>
 #include <tiny_gltf.h>
-
+#include <stb_image.h>
 #include <SDL.h>
 #include "Matrix.hpp"
 #include "Mesh.hpp"
@@ -34,12 +34,12 @@ static void LoadPngFile(const string& path, Mesh& mesh)
     width = int(_width);
     height = int(_height);
     texture.clear();
-    for (size_t i = 0; i < pixelCount; ++i) {
+    for (size_t i = 0; i < pixelCount; ++i)
+    {
         uint8_t r = image[i * 4 + 0];
         uint8_t g = image[i * 4 + 1];
         uint8_t b = image[i * 4 + 2];
         uint8_t a = image[i * 4 + 3];
-
         // AARRGGBB 포맷으로 저장
         texture.push_back((a << 24) | (r << 16) | (g << 8) | b);
     }
@@ -184,6 +184,61 @@ static void LoadObjFile(const string& path, Mesh& mesh)//, vector<Vector2D>& uvs
     }
 }
 
+static void LoadImageFile(const unsigned char* data, size_t dataSize, Image& img)
+{
+    int width, height, channels;
+    if (img.mimeType == "image/png")
+    {
+        std::vector<unsigned char> image;
+        unsigned _width;
+        unsigned _height;
+        unsigned error = lodepng::decode(image, _width, _height, data, dataSize);
+        //std:string path = "./test.png";
+        //unsigned error = lodepng::decode(image, _width, _height, path);
+        if (error)
+            SDL_Log("PNG Load Error");
+        size_t pixelCount = _width * _height;
+        width = int(_width);
+        height = int(_height);
+        img.image.clear();
+        img.image.reserve(pixelCount);
+        for (size_t i = 0; i < pixelCount; ++i)
+        {
+            uint8_t r = image[i * 4 + 0];
+            uint8_t g = image[i * 4 + 1];
+            uint8_t b = image[i * 4 + 2];
+            uint8_t a = image[i * 4 + 3];
+            img.image.push_back((a << 24) | (r << 16) | (g << 8) | b);
+        }
+        //std::string filename = "./test.png";
+        //error = lodepng::encode(filename, image, width, height);
+        //if (error)
+        //    SDL_Log("PNG Save Error");
+    }else
+    {
+        unsigned char* pixels = stbi_load_from_memory(// jpg 파일 로드
+            data,
+            dataSize,
+            &width, &height, &channels, 0
+        );
+        img.image.clear();
+        img.image.resize(width * height);
+        for (int y = 0; y < height; ++y)
+        {
+            for (int x = 0; x < width; ++x)
+            {
+                size_t pixel_index = (y * width + x);
+                const unsigned char* src = pixels + pixel_index * channels;
+                uint32_t r = src[0];
+                uint32_t g = src[1];
+                uint32_t b = src[2];
+                uint32_t a = (channels == 4) ? src[3] : 255;
+                img.image[pixel_index] = (a << 24) | (r << 16) | (g << 8) | b;
+            }
+        }
+        stbi_image_free(pixels);
+    }
+}
 
 Level LoadGLTF(std::string filename)
 {
@@ -288,6 +343,7 @@ Level LoadGLTF(std::string filename)
                 const auto& bufferView = model.bufferViews[accessor.bufferView];
                 const auto& buffer = model.buffers[bufferView.buffer];
                 const float* data = reinterpret_cast<const float*>(&buffer.data[bufferView.byteOffset + accessor.byteOffset]);
+                normals.reserve(accessor.count);
                 for (size_t v = 0; v < accessor.count; ++v) {
                     normals.push_back({data[v * 3 + 0], data[v * 3 + 1], data[v * 3 + 2]});
                 }
@@ -308,8 +364,8 @@ Level LoadGLTF(std::string filename)
             {
                 Vertex _v;
                 _v.pos = Vector4(vertices[i]);
-                if(normals.size() > 0) _v.nor = Vector4(normals[i], 0.0f);
-                if(uvs.size() > 0) _v.uv = uvs[i];
+                _v.nor = Vector4(normals[i], 0.0f);
+                _v.uv = uvs[i];
                 vertex.push_back(_v);
             }
             level.meshes.push_back(_mesh);
@@ -319,10 +375,42 @@ Level LoadGLTF(std::string filename)
     {
         Material _mat;
         if (!mat.pbrMetallicRoughness.baseColorFactor.empty()) _mat.baseColorFactor = RGBAtoOx(mat.pbrMetallicRoughness.baseColorFactor);
-        //if (!mat.pbrMetallicRoughness.baseColorTexture.empty()) _mat.baseColorTexture = mat.pbrMetallicRoughness.baseColorTexture;
+        _mat.baseColorTexture = mat.pbrMetallicRoughness.baseColorTexture;
         _mat.metallicFactor = mat.pbrMetallicRoughness.metallicFactor;
         _mat.roughnessFactor = mat.pbrMetallicRoughness.roughnessFactor;
         level.materials.push_back(_mat);
     }
+    for (const auto& texture : model.textures)
+    {
+        Texture tex;
+        tex.source = texture.source;
+        tex.sampler =  texture.sampler;
+        level.textures.push_back(tex);
+    }
+
+    for (const auto& image : model.images)
+    {
+        Image img;
+        img.name = image.name;
+        SDL_Log("image Name:%s", image.name);
+
+        img.mimeType = image.mimeType;
+        if (image.uri.empty())
+        {
+            img.width = image.width;
+            img.height = image.height;
+            if (image.bufferView >=0)
+            {
+                const tinygltf::BufferView& bufferView = model.bufferViews[image.bufferView];
+                const tinygltf::Buffer& buffer = model.buffers[bufferView.buffer];
+                // 데이터의 시작 주소와 크기를 얻습니다.
+                const unsigned char* imageData = reinterpret_cast<const unsigned char*>(buffer.data.data() + bufferView.byteOffset);
+                size_t imageDataSize = bufferView.byteLength;
+                LoadImageFile(imageData, imageDataSize, img);
+            }
+        }
+        level.images.push_back(img);
+    }
+    
     return level;
 }
