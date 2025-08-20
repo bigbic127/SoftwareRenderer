@@ -8,6 +8,7 @@
 #include <tiny_gltf.h>
 #include <stb_image.h>
 #include <SDL.h>
+#include <algorithm>
 #include "Matrix.hpp"
 #include "Mesh.hpp"
 #include "Vector.hpp"
@@ -287,6 +288,7 @@ Level LoadGLTF(std::string filename)
             vector<Vector3> vertices;
             vector<Vector3> normals;
             vector<Vector2> uvs;
+            vector<uint32_t> colors;
             vector<Vector4> weights;
             vector<Vector4i> joints;
             vertex.clear();
@@ -360,18 +362,45 @@ Level LoadGLTF(std::string filename)
                     uvs.push_back({uv_data[i * 2 + 0], uv_data[i * 2 + 1]});
                 }
             }
+            if (primitive.attributes.count("COLOR_0"))
+            {
+                const auto& accessor = model.accessors[primitive.attributes.at("COLOR_0")];
+                const auto& bufferView = model.bufferViews[accessor.bufferView];
+                const auto& buffer = model.buffers[bufferView.buffer];
+                const float* color = reinterpret_cast<const float*>(&buffer.data[bufferView.byteOffset + accessor.byteOffset]);
+                colors.reserve(accessor.count);
+                auto to8 = [](float v) -> uint8_t {
+                    return static_cast<uint8_t>(clamp(v, 0.0f, 1.0f) * 255.0f + 0.5f); 
+                };
+                for (size_t v = 0; v < accessor.count; ++v)
+                {
+                    uint8_t r = to8(color[v * 4 + 0]);
+                    uint8_t g = to8(color[v * 4 + 1]);
+                    uint8_t b = to8(color[v * 4 + 2]);
+                    uint8_t a = to8(color[v * 4 + 3]);
+                    colors.push_back((a << 24) | (r << 16) | (g << 8) | b);
+                }
+            }
             // Vertex 구조
+            if (normals.size()<=0)
+                normals.resize(vertices.size());
+            if (uvs.size()<=0)
+                uvs.resize(vertices.size());
+            if (colors.size()<=0)
+                colors.resize(vertices.size());
             for (size_t i = 0; i < vertices.size(); i++)
             {
                 Vertex _v;
                 _v.pos = Vector4(vertices[i]);
                 _v.nor = Vector4(normals[i], 0.0f);
                 _v.uv = uvs[i];
+                _v.color = colors[i];
                 vertex.push_back(_v);
             }
             level.meshes.push_back(_mesh);
         }
     }
+
     for (const auto& mat : model.materials)
     {
         Material _mat;
@@ -381,6 +410,7 @@ Level LoadGLTF(std::string filename)
         _mat.roughnessFactor = mat.pbrMetallicRoughness.roughnessFactor;
         level.materials.push_back(_mat);
     }
+
     for (const auto& texture : model.textures)
     {
         Texture tex;
@@ -393,7 +423,6 @@ Level LoadGLTF(std::string filename)
     {
         Image img;
         img.name = image.name;
-        SDL_Log("image Name:%s", image.name);
         img.mimeType = image.mimeType;
         if (image.uri.empty())
         {

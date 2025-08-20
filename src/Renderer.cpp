@@ -85,7 +85,7 @@ void Renderer::Render()
         while(pIndex >=0)
         {
             Node& node = level.nodes[pIndex];
-            pMatrix = node.transform.GetMatrix() * pMatrix; 
+            pMatrix = node.transform.GetMatrix() * pMatrix;
             pIndex = node.parent;
         }
         for(Vertex& vtx: vertex)
@@ -144,15 +144,11 @@ void Renderer::Render()
                 mesh.GetColor() = 0xFF555555;
             if (renderMode == RenderMode::Solid || renderMode == RenderMode::FloatData || renderMode == RenderMode::Shader)
                 {
-                    vector<Vector3> projectionPoints = {
-                        tri.vertices[0].proj_p,
-                        tri.vertices[1].proj_p,
-                        tri.vertices[2].proj_p};
-                    vector<Vector2> uvs = {
-                        tri.vertices[0].uv,
-                        tri.vertices[1].uv,
-                        tri.vertices[2].uv};
-                    DrawTriangle(projectionPoints, uvs, mesh);
+                    vector<Vertex> vertex = {
+                        tri.vertices[0],
+                        tri.vertices[1],
+                        tri.vertices[2]};
+                    DrawTriangle(vertex, mesh);
                 }
             if (renderMode == RenderMode::Wireframe || renderMode == RenderMode::FloatData)
             {
@@ -361,16 +357,16 @@ void Renderer::DrawLine(Vector2 a, Vector2 b, uint32_t color)
     }
 }
 //삼각형 그리기 Barycentric Algorithm
-void Renderer::DrawTriangle(vector<Vector3>& p, vector<Vector2>& uv, Mesh& mesh)
+void Renderer::DrawTriangle(vector<Vertex>& vertex, Mesh& mesh)
 {
     //2D좌표로 변환
-    Vector3 p1 = p[0];
-    Vector3 p2 = p[1];
-    Vector3 p3 = p[2];
+    Vector3 p1 = vertex[0].proj_p;
+    Vector3 p2 = vertex[1].proj_p;
+    Vector3 p3 = vertex[2].proj_p;
     //UV
-    Vector2 uv1 = uv[0];
-    Vector2 uv2 = uv[1];
-    Vector2 uv3 = uv[2];
+    Vector2 uv1 = vertex[0].uv;
+    Vector2 uv2 = vertex[1].uv;
+    Vector2 uv3 = vertex[2].uv;
     //AABB 범위 계산
     float minX = max(0.0f, floor(min({ p1.x, p2.x, p3.x })));
     float maxX = min((float)width - 1, ceil(max({ p1.x, p2.x, p3.x })));
@@ -402,6 +398,7 @@ void Renderer::DrawTriangle(vector<Vector3>& p, vector<Vector2>& uv, Mesh& mesh)
                     zBuffer[index] = z;
                     //DrawPoint(x, y, 5, 5, color);
                     if(mesh.GetTexture().size() > 0 && renderMode == RenderMode::Shader) mesh.GetColor() = DrawTexture(u, v, mesh);
+                    else if (renderMode == RenderMode::Shader) mesh.GetColor() = vertex[0].color;
                     colorBuffer[index] = mesh.GetColor();
                 }
             }
@@ -473,12 +470,10 @@ void Renderer::OpenObjFile()
             for (size_t i = 0; i < level.nodes.size();i++)
             {
                 Node& node = level.nodes[i];
-                if (node.children.size() > 0)
-                {
-                    for (int& idx : node.children)
-                        traverse(idx, i, node);
-                }else
-                    traverse(i, -1, node);
+                if (node.children.size()<=0 && node.mesh > -1 && node.parent < 0)
+                    traverse(i, -1, node);//메쉬의 부모노드 찾기
+                for (int& idx : node.children)
+                    traverse(idx, i, node);//재귀함수 메쉬의 부모노드 찾기
             }
             for (Material& mat : level.materials)
             {

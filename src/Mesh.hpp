@@ -17,6 +17,7 @@ class Vertex
         Vector4 pos;
         Vector4 nor;
         Vector2 uv;
+        uint32_t color = 0xFF555555;
         Vector3 proj_m;
         Vector4 proj_clip;
         Vector3 proj_p;
