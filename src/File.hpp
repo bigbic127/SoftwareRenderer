@@ -86,6 +86,7 @@ static void LoadObjFile(const string& path, Mesh& mesh)//, vector<Vector2D>& uvs
         {
             Vector2 uv;
             iss >> uv.x >> uv.y;
+            uv.y = 1.0f - uv.y; // ← Y축 뒤집기
             uvs.push_back(uv);
         }
         else if (prefix == "f")
@@ -393,7 +394,6 @@ Level LoadGLTF(std::string filename)
         Image img;
         img.name = image.name;
         SDL_Log("image Name:%s", image.name);
-
         img.mimeType = image.mimeType;
         if (image.uri.empty())
         {

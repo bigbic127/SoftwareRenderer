@@ -423,7 +423,7 @@ uint32_t Renderer::DrawTexture(float u, float v, Mesh& mesh)
     vector<uint32_t>& texture = mesh.GetTexture();
     int& width = mesh.GetUVsWidth();
     int& height = mesh.GetUVsHeight();
-    v = 1.0f - v; // ← Y축 뒤집기
+    //v = 1.0f - v; // ← Y축 뒤집기
     float texX = u * width - 0.5f;
     float texY = v * height - 0.5f;
     int x = SDL_clamp(int(texX + 0.5f), 0, (int)width - 1);
@@ -522,16 +522,16 @@ void Renderer::OpenObjFile()
     Vector3 size = minBound - maxBound;
     Vector3 center = (minBound + maxBound) * 0.5f;
     float max_dim = std::max({size.x, size.y, size.z});
-    float value = 1.0f;
-    float scale_factor = value / max_dim;
-    float scale_factor2 = -value * scale_factor;
+    float value = 5.0f;
+    float scale_factor = abs(value * max_dim);
+
     for (Mesh& mesh : meshes)
     {
         //mesh.GetTransform().SetPosition(center * scale_factor);
         //mesh.GetTransform().SetScale(Vector3(scale_factor2,scale_factor2,scale_factor2));
     }
-    camera.SetLookAt(Vector3(0.f,0.5f, 10.f), Vector3(0.f,0.f,0.f), Vector3(0.f,1.f,0.f));
-    //camera.SetPerspective(70.f, float(width)/height, 0.1f, 100.f);
+    camera.SetLookAt(Vector3(0.f,0.5f, scale_factor), center, Vector3(0.f,1.f,0.f));
+    camera.SetPerspective(70.f, float(width)/height, 0.1f, 1000.f);
 }
 
 void Renderer::IRenderMode(int mode)
