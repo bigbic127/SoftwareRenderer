@@ -43,7 +43,7 @@ void Renderer::Ready()
     meshes.push_back(mesh);
     //카메라 파마리터 변경
     camera.SetLookAt(Vector3(0.f, 2.0f, 10.f), Vector3(0.f,0.f,0.f), Vector3(0.f,1.f,0.f));
-    camera.SetPerspective(70.f, float(width)/height, 0.1f, 100.f);
+    camera.SetPerspective(70.f, float(width)/height, 0.01f, 1000.f);
 }
 
 void Renderer::Update()
@@ -64,7 +64,7 @@ void Renderer::Update()
             transform.SetRotation(rot);
         }
     }
-    camera.SetPerspective(70.f, float(width)/height, 0.1f, 100.f);//화면 비율 유지
+    camera.SetPerspective(70.f, float(width)/height, 0.01f, 1000.f);//화면 비율 유지
 }
 
 void Renderer::Render()
@@ -80,10 +80,18 @@ void Renderer::Render()
         vector<Vector4> planes = camera.GetFrustumPlanes();
         vector<Vertex>& vertex = mesh.GetVertex();
         vector<Vector3i>& indices = mesh.GetIndices();
+        int pIndex = mesh.parent;//메쉬 parent Node의 행렬 변환
+        Matrix4x4 pMatrix;
+        while(pIndex >=0)
+        {
+            Node& node = level.nodes[pIndex];
+            pMatrix = node.transform.GetMatrix() * pMatrix; 
+            pIndex = node.parent;
+        }
         for(Vertex& vtx: vertex)
         {
             Vector4 v = vtx.pos;
-            Vector4 model = mesh.GetTransform().GetMatrix() * v; //월드행렬 변환
+            Vector4 model = pMatrix * mesh.GetTransform().GetMatrix() * v; //월드행렬 변환
             Vector4 view =  camera.GetViewMatrix() * model; //뷰행렬 변환
             Vector4 projection = camera.GetProjectionMatrix() * view; //프로젝션행렬 변환
             vtx.proj_m = Vector3(model.x, model.y, model.z);
@@ -454,16 +462,10 @@ void Renderer::OpenObjFile()
                 if (meshIdx > -1)
                 {
                     //childen -> parent Matrix 계산
-                    int p = cIndex;
-                    Transform& transform = level.meshes[meshIdx].GetTransform();
-                    Matrix4x4 _m;
-                    while(p>=0)
-                    {
-                        Node& n = level.nodes[p];
-                        _m = n.transform.GetMatrix() * _m;
-                        p = n.parent;
-                    }
-                    transform.localMatirix = _m;
+                    Node& node = level.nodes[cIndex];
+                    Mesh& mesh = level.meshes[meshIdx];
+                    mesh.parent = pIndex;
+                    mesh.GetTransform() = node.transform;//node의 transform 값을 메쉬에 적용
                 }
                 for (int idx : node.children)
                     traverse(idx, cIndex, node);
@@ -471,8 +473,12 @@ void Renderer::OpenObjFile()
             for (size_t i = 0; i < level.nodes.size();i++)
             {
                 Node& node = level.nodes[i];
-                for (int& idx : node.children)
-                    traverse(idx, i, node);
+                if (node.children.size() > 0)
+                {
+                    for (int& idx : node.children)
+                        traverse(idx, i, node);
+                }else
+                    traverse(i, -1, node);
             }
             for (Material& mat : level.materials)
             {
@@ -522,7 +528,7 @@ void Renderer::OpenObjFile()
     Vector3 size = minBound - maxBound;
     Vector3 center = (minBound + maxBound) * 0.5f;
     float max_dim = std::max({size.x, size.y, size.z});
-    float value = 5.0f;
+    float value = 2.0f;
     float scale_factor = abs(value * max_dim);
 
     for (Mesh& mesh : meshes)
@@ -530,8 +536,8 @@ void Renderer::OpenObjFile()
         //mesh.GetTransform().SetPosition(center * scale_factor);
         //mesh.GetTransform().SetScale(Vector3(scale_factor2,scale_factor2,scale_factor2));
     }
-    camera.SetLookAt(Vector3(0.f,0.5f, scale_factor), center, Vector3(0.f,1.f,0.f));
-    camera.SetPerspective(70.f, float(width)/height, 0.1f, 1000.f);
+    //camera.SetLookAt(Vector3(0.f,0.5f, scale_factor), center, Vector3(0.f,1.f,0.f));
+    //camera.SetPerspective(70.f, float(width)/height, 0.1f, 1000.f);
 }
 
 void Renderer::IRenderMode(int mode)

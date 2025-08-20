@@ -52,6 +52,7 @@ class Mesh
         void Sphere(int stacks = 32, int slices = 32, float radius = 1.0f);
     public:
         int MaterialID;
+        int parent = -1;
         string name;
     private:
         vector<Triangle> triangles;

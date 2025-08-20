@@ -125,7 +125,7 @@ class Transform
             mat.m[2][2] = scale.z;
             return mat;
         }
-    public:
+    private:
         Vector3 position;
         Vector3 rotation;
         Quaternion quterian;
