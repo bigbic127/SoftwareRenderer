@@ -108,7 +108,7 @@ void Window::DrawGUI()
     {
         ImGuiIO&io=ImGui::GetIO();
         ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
-        ImGui::SetNextWindowSize(ImVec2(350, 100), ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2(350, 90), ImGuiCond_Always);
         ImGui::Begin("Panel", nullptr,
                     ImGuiWindowFlags_NoMove |
                     ImGuiWindowFlags_NoResize |
@@ -116,7 +116,10 @@ void Window::DrawGUI()
                     ImGuiWindowFlags_NoTitleBar);
 
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-
+        ImGui::Separator();
+        if (ImGui::Button("Load"))
+            OpenBrower();
+        ImGui::Separator();
         if (ImGui::Button("wireframe"))
             IRenderMode(0);
         ImGui::SameLine();

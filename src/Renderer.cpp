@@ -182,7 +182,7 @@ void Renderer::ProcessInput(SDL_Event& event)
         else if (event.key.keysym.sym == SDLK_4)
             SetRenderMode(RenderMode::Shader);
         else if (event.key.keysym.sym == SDLK_o)
-            OpenObjFile();
+            OpenGLTFFile();
         else if (event.key.keysym.sym == SDLK_SPACE)
             bIsSpace = !bIsSpace;
         else if (event.key.keysym.sym == SDLK_r)
@@ -429,7 +429,7 @@ uint32_t Renderer::DrawTexture(float u, float v, Mesh& mesh)
     return pixel;
 }
 
-void Renderer::OpenObjFile()
+void Renderer::OpenGLTFFile()
 {
     std::vector<std::filesystem::path> paths = FileDialog::ShowFileDialog();
     if (paths.size() <= 0)
@@ -490,7 +490,7 @@ void Renderer::OpenObjFile()
         else if (objPath.extension() == ".obj")
         {
             pngPath.replace_extension(".png");
-            Mesh mesh = Mesh();
+            Mesh mesh;
             LoadObjFile(objPath.string(), mesh);
             LoadPngFile(pngPath.string(), mesh);
             meshes.push_back(mesh);
@@ -556,6 +556,11 @@ void Renderer::OpenObjFile()
     }
     //camera.SetLookAt(Vector3(0.f,0.5f, scale_factor), center, Vector3(0.f,1.f,0.f));
     //camera.SetPerspective(70.f, float(width)/height, 0.1f, 1000.f);
+}
+
+void Renderer::OpenBrower()
+{
+    OpenGLTFFile();
 }
 
 void Renderer::IRenderMode(int mode)

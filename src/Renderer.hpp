@@ -27,9 +27,10 @@ class Renderer : public Window
         void Update();
         void Render();
         void ProcessInput(SDL_Event& event) override;
+        void OpenBrower() override;
         void IRenderMode(int mode) override;
         void InputTransform(SDL_Event& event);
-        void OpenObjFile();
+        void OpenGLTFFile();
         void DrawClear(uint32_t color = 0xFF000000);
         void DrawGrid(int intervalW = 10, int intervalH = 10, uint32_t color = 0xFF333333);
         void DrawPixel(int x, int y, uint32_t color);

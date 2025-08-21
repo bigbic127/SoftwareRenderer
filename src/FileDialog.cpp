@@ -9,7 +9,7 @@ std::vector<std::filesystem::path> FileDialog::ShowFileDialog(bool isSave)
     IFileOpenDialog* pFileOpen = nullptr;
     bool bIsAllOperationSurcces = false;
     bool bSelectFolder = false;
-    bool bMultiSelect = true;
+    bool bMultiSelect = false;
     std::vector<std::filesystem::path> paths;
 
     while (!bIsAllOperationSurcces)
@@ -26,10 +26,9 @@ std::vector<std::filesystem::path> FileDialog::ShowFileDialog(bool isSave)
         }
         const COMDLG_FILTERSPEC rgSpec[] =
         {
-            { L"All Supported Files (*.obj, *.glb)", L"*.obj; *.glb"},
-            { L"OBJ Files (*.obj)", L"*.obj"},
             { L"GLTF Files (*.glb)", L"*.glb"}
-
+            //{ L"All Supported Files (*.obj, *.glb)", L"*.obj; *.glb"},
+            //{ L"OBJ Files (*.obj)", L"*.obj"}
         };
         pFileOpen->SetFileTypes(ARRAYSIZE(rgSpec), rgSpec);
 

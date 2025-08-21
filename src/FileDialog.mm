@@ -16,7 +16,7 @@ std::vector<std::filesystem::path> FileDialog::ShowFileDialog(bool isSave)
         NSOpenPanel *panel = [NSOpenPanel openPanel];
 
         // 여러 파일 선택 허용
-        [panel setAllowsMultipleSelection:YES];
+        [panel setAllowsMultipleSelection:NO];
         // 디렉토리 선택 비허용
         [panel setCanChooseDirectories:NO];
         // 파일 선택 허용
