@@ -131,6 +131,7 @@ void Renderer::Render()
                 int gray = static_cast<int>(brightness * 255.0f);
                 uint32_t color = 0xFF000000 | (gray << 16) | (gray << 8) | gray;// ARGB  각uint8
                 mesh.GetColor() = color;
+                mesh.floatColor = gray;
             }
             else
                 mesh.GetColor() = 0xFF555555;
@@ -390,7 +391,7 @@ void Renderer::DrawTriangle(vector<Vertex>& vertex, Mesh& mesh)
                     zBuffer[index] = z;
                     //DrawPoint(x, y, 5, 5, color);
                     if(mesh.GetTexture().size() > 0 && renderMode == RenderMode::Shader) mesh.GetColor() = DrawTexture(u, v, mesh);
-                    else if (renderMode == RenderMode::Shader) mesh.GetColor() = vertex[0].color;
+                    else if (renderMode == RenderMode::Shader) mesh.GetColor() = MultiplyGray(vertex[0].color, mesh.floatColor);
                     colorBuffer[index] = mesh.GetColor();
                 }
             }
@@ -401,6 +402,18 @@ void Renderer::DrawTriangle(vector<Vertex>& vertex, Mesh& mesh)
 float Renderer::EdgeFunction(const Vector2& a, const Vector2& b, const Vector2& c)
 {
     return (c.x - a.x) * (b.y - a.y) - (c.y - a.y) * (b.x - a.x);
+}
+
+uint32_t Renderer::MultiplyGray(uint32_t argb, int gray)
+{
+    uint8_t a = (argb >> 24) & 0xFF;
+    uint8_t r = (argb >> 16) & 0xFF;
+    uint8_t g = (argb >> 8)  & 0xFF;
+    uint8_t b = (argb)       & 0xFF;
+    r = SDL_clamp((r * gray) / 255, 0, 255);
+    g = SDL_clamp((g * gray) / 255, 0, 255);
+    b = SDL_clamp((b * gray) / 255, 0, 255);
+    return (a << 24) | (r << 16) | (g << 8) | b;
 }
 
 uint32_t Renderer::ColorToOx(float z)

@@ -56,6 +56,7 @@ class Mesh
         int parent = -1;
         int nodeIdex = -1;
         string name;
+        int floatColor = 1;
     private:
         vector<Triangle> triangles;
         vector<Vertex> vertex;

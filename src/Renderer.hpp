@@ -44,6 +44,7 @@ class Renderer : public Window
         RenderMode GetRenderMode() const{return renderMode;}
     protected:
         uint32_t ColorToOx(float z);
+        uint32_t MultiplyGray(uint32_t argb, int gray);
     private:
         int FPS = 200;
         float frameSecond = 1000/FPS;
