@@ -62,6 +62,8 @@ void Renderer::Render()
     DrawClear();
     DrawGrid();
     //DrawPoint(10,10,4,4,0xFFFF0000);
+    //glTF - 씬 트리로 구성 후 노드로 변경해야 됨. 같은 메쉬 정보를 Index를 가지는 노드(Transform 만 변경해서 사용)가 있음.
+    //glTF - 현재는 메쉬정보로만 그리기 때문에 같은 메쉬정보를 공유하는 노드가 있을 경우 Transform 값이 틀려짐. 
     for (Mesh&mesh : meshes)
     {
         vector<Triangle>& triangles = mesh.GetTriangles();
@@ -457,7 +459,8 @@ void Renderer::OpenObjFile()
                 }
                 for (int idx : node.children)
                     traverse(idx, cIndex, node);
-                };
+            };
+            meshes.clear();
             for (size_t i = 0; i < level.nodes.size();i++)
             {
                 Node& node = level.nodes[i];
@@ -465,25 +468,23 @@ void Renderer::OpenObjFile()
                     traverse(i, -1, node);//메쉬의 부모노드 찾기
                 for (int& idx : node.children)
                     traverse(idx, i, node);//재귀함수 메쉬의 부모노드 찾기
-            }
-            for (Material& mat : level.materials)
-            {
-            }
-            for (Mesh& mesh : level.meshes)
-            {
-                int matID = mesh.MaterialID;
-                if (matID > -1)
+                if (node.mesh >= 0)// 노드의 메쉬를 Render Meshes로 등록.(같은 메쉬를 공유하는 Node 존재)
                 {
-                    int texID = level.materials[matID].baseColorTexture.index;
-                    if (texID > -1)
+                    Mesh& mesh = level.meshes[node.mesh];
+                    int matID = mesh.MaterialID;
+                    if (matID > -1)
                     {
-                        int imgID = level.textures[texID].source;
-                        mesh.GetTexture() = level.images[imgID].image;
-                        mesh.GetUVsWidth() = level.images[imgID].width;
-                        mesh.GetUVsHeight() = level.images[imgID].height;
+                        int texID = level.materials[matID].baseColorTexture.index;
+                        if (texID > -1)
+                        {
+                            int imgID = level.textures[texID].source;
+                            mesh.GetTexture() = level.images[imgID].image;
+                            mesh.GetUVsWidth() = level.images[imgID].width;
+                            mesh.GetUVsHeight() = level.images[imgID].height;
+                        }
                     }
-                }
-                meshes.push_back(mesh);
+                    meshes.push_back(level.meshes[node.mesh]);
+                }                
             }
         }
         else if (objPath.extension() == ".obj")
@@ -526,30 +527,32 @@ void Renderer::OpenObjFile()
     float scale_factor = value / max_dim;
     //루트 노드 생성(전체 스케일 조절)
     Node parentNode;
+    parentNode.name= "RootNode";
     parentNode.parent = -2; //루트 표시
     parentNode.transform.SetPosition((Vector3() - center) * scale_factor);
     parentNode.transform.SetScale(Vector3(scale_factor,scale_factor,scale_factor));
     level.nodes.push_back(parentNode);
-    for(Mesh& mesh : level.meshes)
+    for(Node& node : level.nodes)
     {
+        if (node.mesh < 0) continue;
         int index = -1;
-        int pIndex = mesh.parent;
+        int pIndex = node.parent;
         while(pIndex > -1)
         {
-            Node& node = level.nodes[pIndex];
-            if(node.parent < -1)
+            Node& _n = level.nodes[pIndex];
+            if(_n.parent < -1)
             {
                 index = -2;
                 break;
             }
             index = pIndex;
-            pIndex = node.parent;
+            pIndex = _n.parent;
         }
         if (index < -1) continue;
         else if (index > -1)
             level.nodes[index].parent = level.nodes.size() -1;
         else
-            level.nodes[mesh.nodeIdex].parent = level.nodes.size() -1;
+            node.parent = level.nodes.size() -1;
     }
     //camera.SetLookAt(Vector3(0.f,0.5f, scale_factor), center, Vector3(0.f,1.f,0.f));
     //camera.SetPerspective(70.f, float(width)/height, 0.1f, 1000.f);
