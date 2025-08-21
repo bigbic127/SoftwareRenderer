@@ -49,21 +49,11 @@ void Renderer::Ready()
 void Renderer::Update()
 {
     //FPS 프레임 딜레이
-    int timeToWait = frameSecond - (SDL_GetTicks() - previousFrameSecond);
+    Uint32 timeToWait = frameSecond - (SDL_GetTicks() - previousFrameSecond);
+    //SDL_Log("frame: %f", 1000.f/(SDL_GetTicks() - previousFrameSecond));
     if (timeToWait > 0 && timeToWait <= frameSecond)
         SDL_Delay(timeToWait);
     previousFrameSecond = SDL_GetTicks();
-    //Mesh Transform 처리
-    if (bIsSpace)
-    {
-        for (Mesh&mesh : meshes)
-        {
-            Transform& transform = mesh.GetTransform();
-            Vector3 rot = transform.GetRotation();
-            rot.y += 0.2f * frameSecond;
-            transform.SetRotation(rot);
-        }
-    }
     camera.SetPerspective(70.f, float(width)/height, 0.01f, 1000.f);//화면 비율 유지
 }
 
@@ -461,6 +451,7 @@ void Renderer::OpenObjFile()
                     //childen -> parent Matrix 계산
                     Node& node = level.nodes[cIndex];
                     Mesh& mesh = level.meshes[meshIdx];
+                    mesh.nodeIdex = cIndex;
                     mesh.parent = pIndex;
                     mesh.GetTransform() = node.transform;//node의 transform 값을 메쉬에 적용
                 }
@@ -509,9 +500,17 @@ void Renderer::OpenObjFile()
     Vector3 maxBound = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
     for (Mesh& mesh : meshes)
     {
+        int pIndex = mesh.parent;
+        Matrix4x4 pMatrix;
+        while(pIndex >=0)
+        {
+            Node& node = level.nodes[pIndex];
+            pMatrix = node.transform.GetMatrix() * pMatrix;
+            pIndex = node.parent;
+        }
         for (const Vertex& v : mesh.GetVertex())
         {
-            Vector4 p = mesh.GetTransform().GetMatrix() * v.pos;
+            Vector4 p = pMatrix * mesh.GetTransform().GetMatrix() * v.pos;
             minBound.x = std::min(minBound.x, p.x);
             minBound.y = std::min(minBound.y, p.y);
             minBound.z = std::min(minBound.z, p.z);
@@ -520,16 +519,37 @@ void Renderer::OpenObjFile()
             maxBound.z = std::max(maxBound.z, p.z);
         }        
     }
-    Vector3 size = minBound - maxBound;
+    Vector3 size = maxBound - minBound;
     Vector3 center = (minBound + maxBound) * 0.5f;
     float max_dim = std::max({size.x, size.y, size.z});
-    float value = 2.0f;
-    float scale_factor = abs(value * max_dim);
-
-    for (Mesh& mesh : meshes)
+    float value = 7.0f; //전체 스케일
+    float scale_factor = value / max_dim;
+    //루트 노드 생성(전체 스케일 조절)
+    Node parentNode;
+    parentNode.parent = -2; //루트 표시
+    parentNode.transform.SetPosition((Vector3() - center) * scale_factor);
+    parentNode.transform.SetScale(Vector3(scale_factor,scale_factor,scale_factor));
+    level.nodes.push_back(parentNode);
+    for(Mesh& mesh : level.meshes)
     {
-        //mesh.GetTransform().SetPosition(center * scale_factor);
-        //mesh.GetTransform().SetScale(Vector3(scale_factor2,scale_factor2,scale_factor2));
+        int index = -1;
+        int pIndex = mesh.parent;
+        while(pIndex > -1)
+        {
+            Node& node = level.nodes[pIndex];
+            if(node.parent < -1)
+            {
+                index = -2;
+                break;
+            }
+            index = pIndex;
+            pIndex = node.parent;
+        }
+        if (index < -1) continue;
+        else if (index > -1)
+            level.nodes[index].parent = level.nodes.size() -1;
+        else
+            level.nodes[mesh.nodeIdex].parent = level.nodes.size() -1;
     }
     //camera.SetLookAt(Vector3(0.f,0.5f, scale_factor), center, Vector3(0.f,1.f,0.f));
     //camera.SetPerspective(70.f, float(width)/height, 0.1f, 1000.f);

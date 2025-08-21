@@ -54,6 +54,7 @@ class Mesh
     public:
         int MaterialID;
         int parent = -1;
+        int nodeIdex = -1;
         string name;
     private:
         vector<Triangle> triangles;
