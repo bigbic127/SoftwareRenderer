@@ -29,20 +29,26 @@
 
 ## 🖼️ 샘플 렌더 결과
 
-![bunny render](screenshot/bunny.gif)
-
-
-
-
-
-![alt text](screenshot/girl.gif)
-
-
-![alt text](screenshot/girl.png)
+![alt text](screenshot/finish01.png)
 
 
 
 파일 출처 : https://sketchfab.com/3d-models/just-a-girl-b2359160a4f54e76b5ae427a55d9594d
+
+
+
+
+
+
+
+
+
+![alt text](screenshot/finish02.png)
+
+
+
+파일 출처 : https://sketchfab.com/3d-models/bikini-girl-sf-101-568316e9e1724a288b1559ef96abeff9
+
 
 
 
