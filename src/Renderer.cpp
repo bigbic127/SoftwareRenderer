@@ -110,8 +110,9 @@ void Renderer::Render()
             // 클리핑된 삼각형 NDC 좌표 변환
             for (Vertex& vertice : tri.vertices)
             {
+                //NDC 좌표계로 변환 (-1 ~ 1)
                 Vector4 projection = vertice.proj_clip;
-                Vector3 p = Vector3(projection.x/projection.w , projection.y/projection.w, projection.z/projection.w);//NDC 좌표계로 변환
+                Vector3 p = Vector3(projection.x/projection.w , projection.y/projection.w, projection.z/projection.w); // 원근 보정 (동차좌표 -> 카테시안좌표) -z값 일수록 축소
                 float screenX = (p.x * 0.5f + 0.5f) * width;
                 float screenY = (1.0f - (p.y * 0.5f + 0.5f)) * height;
                 float zdepth = p.z * 0.5f + 0.5f;
